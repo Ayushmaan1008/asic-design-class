@@ -1,12 +1,3 @@
-# ASIC Design
-
-## Compiling the C code in GCC. Here we'll compile a code to calculate sum of numbers from 1 to 10
-
-
-1. First we'll ensure that we are in home directory. For that we'll type the command cd. Then we'll be using leafpad text editor to write our C code for calculating the sum.
-   <img src="images\Screenshot (517).png" alt="Screenshot">
-
-    
 
    
 # ASIC Design
@@ -50,19 +41,5 @@ These are the steps to perform this task
 So using Ofast our set of instructions gets reduced as Ofast level applies a wider range of aggressive optimizations that streamline code, eliminate redundancies, and leverage parallelism, resulting in a reduced instruction count compared to O1.
 
 
-2. Type the code for calculating sum of numbers from 1 to 10 in C language in that text editor and save it
-   <img src="images\\Screenshot (518).png" alt="Screenshot">
 
-
-3. Now we'll run this programme. Type command gg sum1ton.c & then type ./a.out. This will show the output of our programme.
-<img src="images\\Screenshot 2024-07-16 105811.png" alt="Screenshot">
-
-These are the steps to perform this task
-
-
-
-## Compiling the same C code in RISC V compiler
-
-1. Here we have first displayed the code our code content. Then using the command showed in the image, we are compiling the code using RISC gcc. Run it and it'll generate a file sum1ton.o
- <img src="images\\1.png" alt="Screenshot">
 
