@@ -41,5 +41,43 @@ These are the steps to perform this task
 So using Ofast our set of instructions gets reduced as Ofast level applies a wider range of aggressive optimizations that streamline code, eliminate redundancies, and leverage parallelism, resulting in a reduced instruction count compared to O1.
 
 
+## Debugging the code in Spike on RISC V
+
+1. Here first we ran our code on risc v compiler. Now we'll debug it in spike. We'll open spike using the command mentioned
+```
+spike -d pk sum1ton.o
+```
+Then we want our programme counter to run till 100b0 (memory address instruction of first location). For that we'll type
+```
+until pc 0 100b0
+```
+Now assembly code has all instructions before 100b0
+<img src="images/2.1 - Copy.png" alt="Image 2.1 - Copy">
+
+
+2. The next instruction there basically will modify the content of  a2. Lets check whats the content of a2 with command
+```
+reg 0 a2
+```
+Now press enter and it'll run the next instruction which is lui a2, 0x1. This instruction stands for load upper immediate . It'll load upper bits of a2 register by 01. Now again check the content of a2 and you'll see that it has been updated
+<img src="images/2.3.png" alt="Image 2.3">
+
+3. Now when you press enter, it'll run the next instruction that is 
+```
+addi sp,sp,-16
+```
+This updates the content of sp (stack pointer) by -16 (-10 in hexadecimal). Quit the spike by pressing q.Enter spike again by the command mentioned in step 1. NFrom here we'll go to instruction 100b8 with command
+```
+until pc 0 100b8
+```
+check the content of sp with this command
+```
+reg 0 sp
+```
+This will show you the content of sp register. Press enter and run the next command. Now if you check content of sp register, you'll see that there is a subtraction of hexadecimal 10.
+<img src="images/2.4.png" alt="Image 2.4">
+
+For refference 
+<img src="images/2.5.png" alt="Image 2.5">
 
 
