@@ -379,7 +379,50 @@ ADDI R12, R4, 5
 <img src="images/Screenshot (579).png" alt="Screenshot 579">
 
 BEQ R0, R0, 15
-<img src="images/Screenshot (580).png" alt="Screenshot 580">
+<img src="images/Screenshot (580).png" alt="Screenshot 580">  
+
+Let's look at waveform of some of the instructions which were there in the previous activity   
+
+ADD R6,R7,R8  
+<img src="images/Screenshot (582).png" alt="Screenshot 582">
+
+SUB R8,R6,R7  
+<img src="images/Screenshot (583).png" alt="Screenshot 583">
+
+AND R7,R6,R8  
+<img src="images/Screenshot (584).png" alt="Screenshot 584">
+
+OR R8,R7,R5 
+<img src="images/Screenshot (585).png" alt="Screenshot 585">
+
+XOR R8,R6,R4 
+<img src="images/Screenshot (586).png" alt="Screenshot 586">
+
+SLT R10,R2,R4  
+<img src="images/Screenshot (587).png" alt="Screenshot 587">
+
+ADDI R12,R3,5  
+<img src="images/Screenshot (597).png" alt="Screenshot 597">
+
+
+SW R3,R1,4  
+<img src="images/Screenshot (589).png" alt="Screenshot 589">
+
+SRL R16,R11,R2  
+<img src="images/Screenshot (590).png" alt="Screenshot 590">
+ 
+BNE R0,R1,20  
+<img src="images/Screenshot (594).png" alt="Screenshot 594">
+
+BEQ R0,R0,15  
+<img src="images/Screenshot (595).png" alt="Screenshot 595">
+
+SLL R15,R11,R2  
+<img src="images/Screenshot (596).png" alt="Screenshot 596">
+
+
+
+
 
 
 
