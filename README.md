@@ -392,10 +392,10 @@ SUB R8,R6,R7
 AND R7,R6,R8  
 <img src="images/Screenshot (584).png" alt="Screenshot 584">
 
-OR R8,R7,R5 
+OR R8,R7,R5   
 <img src="images/Screenshot (585).png" alt="Screenshot 585">
 
-XOR R8,R6,R4 
+XOR R8,R6,R4   
 <img src="images/Screenshot (586).png" alt="Screenshot 586">
 
 SLT R10,R2,R4  
@@ -403,7 +403,6 @@ SLT R10,R2,R4
 
 ADDI R12,R3,5  
 <img src="images/Screenshot (597).png" alt="Screenshot 597">
-
 
 SW R3,R1,4  
 <img src="images/Screenshot (589).png" alt="Screenshot 589">
