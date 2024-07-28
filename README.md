@@ -314,7 +314,7 @@ For functional simulation, we'll go through the following steps
 ``` gtkwave_iiitb_rv32i.vcd```  
 This will open GTKWave
 
-Before looking at the waveforms, first ket us go through the hardcoded ISA and bit pattern of instructions present in referrence repository
+Before looking at the waveforms, first let us go through the hardcoded ISA and bit pattern of instructions present in referrence repository
 |Operation       |        Hardcoded ISA |   Bit Pattern (Hardcoded)
 |----------------|----------------------|----------------------------------------------------
 |ADD R6, R2, R1  |        32'h02208300  |   0000001 00010 00001 000 00110 0000000
