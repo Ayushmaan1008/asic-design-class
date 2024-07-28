@@ -59,7 +59,8 @@ Now assembly code has all instructions before 100b0
 ```
 reg 0 a2
 ```
-Now press enter and it'll run the next instruction which is lui a2, 0x1. This instruction stands for load upper immediate . It'll load upper bits of a2 register by 01. Now again check the content of a2 and you'll see that it has been updated
+Now press enter and it'll run the next instruction which is lui a2, 0x1. This instruction stands for load upper immediate . It'll load upper bits of a2 register by 01. Now again check the content of a2 and you'll see that it has been updated  
+
 <img src="images/2.3.png" alt="Image 2.3">
 
 3. Now when you press enter, it'll run the next instruction that is 
@@ -77,7 +78,8 @@ reg 0 sp
 This will show you the content of sp register. Press enter and run the next command. Now if you check content of sp register, you'll see that there is a subtraction of hexadecimal 10.
 <img src="images/2.4.png" alt="Image 2.4">
 
-For refference 
+For refference   
+
 <img src="images/2.5.png" alt="Image 2.5">
 
 
@@ -294,6 +296,90 @@ imm[10:1] in bits [30:21]
 imm[20] on bit[31]**
 
 
+## Functional Simulation
+> **_NOTE:_** Here we have used verilog code and testbench of RISCV from the GitHub repository [iiitb_rv32i](https://github.com/iiitb_rv32i).  Also we'll be performing this in Ubuntu itself.
+
+In the code obtained from the reference repository, I have made changes in the instructions. The instructions in my code are the examples I mentioned in the previous task. Testbench code will remain as it is.  
+For functional simulation, we'll go through the following steps
+1. Open terminal on your Ubuntu  
+2. Type cd to ensure  
+3. Make a new directory using <span style="background-color: #808080;">mkdir <file_name></span>. In my case, i named it IIITB_  
+4. Now create two files for verilog code and testbench code using command <span style="background-color: #808080;">touch</span>. In my case these are AR_Verilog.v and AR_Testbench.v. Then I copied the modified code and pasted it into my verilog file 
+5. I used following command to run it  
+   ``` iverilog -o AR_Verilog AR_Verilog.v AR_Testbench.v```   
+   Then type  
+   ``` ./AR_Verilog```  
+   Use the command according to the file name you have made.  
+6. To see simulation in GTKWave type,  
+``` gtkwave_iiitb_rv32i.vcd```  
+This will open GTKWave
+
+Before looking at the waveforms, first ket us go through the hardcoded ISA and bit pattern of instructions present in referrence repository
+|Operation       |        Hardcoded ISA |   Bit Pattern (Hardcoded)
+|----------------|----------------------|----------------------------------------------------
+|ADD R6, R2, R1  |        32'h02208300  |   0000001 00010 00001 000 00110 0000000
+|SUB R7, R1, R2  |        32'h02209380  |   0000001 00010 00001 001 00111 0000000
+|AND R8, R1, R3  |        32'h0230a400  |   0000001 00011 00001 010 01000 0000000
+|OR R9, R2, R5   |        32'h02513480  |   0000001 00101 00010 011 01001 0000000
+|XOR R10, R1, R4 |        32'h0240c500  |   0000001 00100 00001 100 01010 0000000
+|SLT R1, R2, R4  |        32'h02415580  |   0000001 00100 00010 101 01011 0000000  
+|ADDI R12, R4, 5 |        32'h00520600  |   000000000101 00100 000 01100 0000000  
+|**BEQ** R0, R0, 15  |    32'h00f00002  |   0 000000 01111 00000 000 0000 0 0000010
+|**SW** R3, R1, 2    |    32'h00209181  |   0000000 00010 00001 001 00011 0000001
+|LW R13, R1, 2   |        32'h00208681  |   000000000010 00001 000 01101 0000001  
+|SRL R16, R14, R2|        32'h00271803  |   0000000 00010 01110 001 10000 0000011
+|SLL R15, R1, R2 |        32'h00208783  |   0000000 00010 00001 000 01111 0000011
+
+Now lets look into the RISC V ISA and 32 bit pattern of instructions mentioned in the previous activity.  
+
+|Operation       |        RISCV ISA |   Bit Pattern (Hardcoded)
+|----------------|----------------------|----------------------------------------------------
+|ADD R6, R7, R8  |        32'h00840333  |   0000000 01000 01000 000 00110 0110011
+|SUB R8, R6, R7  |        32'h40730433  |   0100000 00111 00110 000 01000 0110011
+|AND R7, R6, R8  |        32'h008373b3  |   0000000 00111 00110 000 01000 0110011
+|OR R8, R7, R5   |        32'h0053e433  |   0000000 00101 00111 110 01000 0110011
+|XOR R8, R6, R4 |        32'h00434433  |   0000000 00100 00110 100 01000 0110011
+|SLT R10, R2, R4  |        32'h00412533  |   0000000 00100 00010 010 01010 0110011  
+|ADDI R12, R3, 5 |        32'h00518613  |   000000000101 00011 000 01100 0010011  
+|SW R3, R1, 4  |    32'h0030A223  |   0000000 00011 00001 010 00100 0100011
+|SRL R16, R11, R2    |    32'h0025d833  |   0000000 00010 01011 101 10000 0110011
+|BNE R0, R1, 20   |        32'h02101463  |   0 000001 00001 00000 001 0100 0 1100011  
+|BEQ R0, R0, 15|        32'h000000f63  |   0 000000 00000 00000 000 1111 0 1100011
+|LW R13, R11, 2 |        32'h0025a683  |   000000000010 01011 010 01101 0000011
+|SLL R15, R11, R2 |        32'h002597b3  |   0000000 00010 01011 001 01111 0110011
+
+Although the instructions are different in both of the above tables and we cannot compare them, but still we can point out to some differences in case of same instruction type -   
+1. The opcode for instruction type R, I and B is different  
+2. The func3 and func7 are different in R type instruction  
+
+This difference is there because these instructions in the verilog file are hard-coded, meaning they are done by the designer based on his or her own pattern. He or she hasn't followed the RISCV specification bit pattern. 
+
+### Output Waveforms 
+Let's look at waveform of some of the instructions  
+
+ADD R6, R2, R1  
+<img src="images/Screenshot (573).png" alt="Screenshot 573">
+
+SUB R7, R1, R2  
+<img src="images/Screenshot (574).png" alt="Screenshot 574">
+
+AND R8, R1, R3  
+<img src="images/Screenshot (575).png" alt="Screenshot 575">
+
+OR R9, R2, R5  
+<img src="images/Screenshot (576).png" alt="Screenshot 576">
+
+XOR R10, R1, R4  
+<img src="images/Screenshot (577).png" alt="Screenshot 577">
+
+SLT R1, R2, R4  
+<img src="images/Screenshot (578).png" alt="Screenshot 578">
+
+ADDI R12, R4, 5  
+<img src="images/Screenshot (579).png" alt="Screenshot 579">
+
+BEQ R0, R0, 15
+<img src="images/Screenshot (580).png" alt="Screenshot 580">
 
 
 
