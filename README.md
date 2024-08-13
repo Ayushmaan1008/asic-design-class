@@ -2,7 +2,15 @@
    
 # ASIC Design
 
-## Compiling the C code in GCC. Here we'll compile a code to calculate sum of numbers from 1 to 10
+# Table of contents
+1. [Compiling the C code in GCC. Here we'll compile a code to calculate sum of numbers from 1 to 10](#Lab1)
+2. [Compiling the same C code in RISC V compiler](#Lab2)
+3. [Debugging the code in Spike on RISC V](#Lab3)
+4. [Instruction formats in RISC V](#Lab4)
+5. [Implementation of an application in C language and compiling it in GCC and RISC V GCC](#Lab5)
+
+<a name="Lab1"></a>
+## Lab 1 - Compiling the C code in GCC. Here we'll compile a code to calculate sum of numbers from 1 to 10
 
 
 1. First we'll ensure that we are in home directory. For that we'll type the command cd. Then we'll be using leafpad text editor to write our C code for calculating the sum.
@@ -21,7 +29,8 @@
 
 These are the steps to perform this task
 
-## Compiling the same C code in RISC V compiler
+<a name="Lab2"></a>
+## Lab 2 - Compiling the same C code in RISC V compiler
 
 1. Here we have first displayed the code our code content. Then using the command showed in the image, we are compiling the code using RISC gcc. Run it and it'll generate a file sum1ton.o
 <img src="images/1.png" alt="Image 1">
@@ -40,8 +49,8 @@ These are the steps to perform this task
 
 So using Ofast our set of instructions gets reduced as Ofast level applies a wider range of aggressive optimizations that streamline code, eliminate redundancies, and leverage parallelism, resulting in a reduced instruction count compared to O1.
 
-
-## Debugging the code in Spike on RISC V
+<a name="Lab3"></a>
+## Lab 3 - Debugging the code in Spike on RISC V
 
 1. Here first we ran our code on risc v compiler. Now we'll debug it in spike. We'll open spike using the command mentioned
 ```
@@ -82,8 +91,8 @@ For refference
 
 <img src="images/2.5.png" alt="Image 2.5">
 
-
-## Instruction formats in RISC V
+<a name="Lab4"></a>
+## Lab 4 - Instruction formats in RISC V
 In RISC-V, an instruction is a basic operation that a processor can execute. Each instruction typically corresponds to a single operation that the processor can perform on data, such as arithmetic operations, logical operations, memory operations, control flow operations, and so on. These instructions are encoded as binary values that the processor can interpret and execute.
 There are 6 instruction formats in RISC-V:
 
@@ -425,5 +434,26 @@ SLL R15,R11,R2
 
 
 
+
+
+<a name="Lab5"></a>
+## Lab 5 - Implementation of an application in C language and compiling it in GCC and RISC V GCC
+1. This is our C program. It calculates the mileage of the car and based on that provides on whether air conditioner should be used or not. This helps in fuel efficiency.
+<img src="images/4.1.png" alt="Image 4.1">  
+
+2. In this step we will compile it using GCC. Then we'll check its output. I also checked the content of code written in Efficient drive. (Please refer to task 1 for explanation)
+<img src="images/4.2.png" alt="Image 4.2">  
+
+3. In this step we'll run our code on RISC V using compiler optimization flags O1 and Ofast.We'll be looking into instructuions set of both compliations
+O1. (Please refer to task 2 for explanation)  
+<img src="images/4.3.png" alt="Image 4.3">    
+Ofast  
+<img src="images/4.4.png" alt="Image 4.4">  
+
+4. Now we'll check the output of our code in RISC V
+<img src="images/4.5.png" alt="Image 4.5">  
+
+5. In the final step we'll debug our code in spike on RISC V  
+<img src="images/4.6.png" alt="Image 4.6">  
 
 
