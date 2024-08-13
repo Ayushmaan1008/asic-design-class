@@ -446,6 +446,7 @@ SLL R15,R11,R2
 
 3. In this step we'll run our code on RISC V using compiler optimization flags O1 and Ofast.We'll be looking into instructuions set of both compliations
 O1. (Please refer to task 2 for explanation)  
+O1
 <img src="images/4.3.png" alt="Image 4.3">    
 Ofast  
 <img src="images/4.4.png" alt="Image 4.4">  
