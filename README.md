@@ -8,6 +8,7 @@
 3. [Debugging the code in Spike on RISC V](#Lab3)
 4. [Instruction formats in RISC V](#Lab4)
 5. [Implementation of an application in C language and compiling it in GCC and RISC V GCC](#Lab5)
+6. [Building 5-stage pipelined RISC-V processor](#Lab6)
 
 <a name="Lab1"></a>
 # Lab 1 - Compiling the C code in GCC. Here we'll compile a code to calculate sum of numbers from 1 to 10
@@ -457,7 +458,7 @@ Ofast
 5. In the final step we'll debug our code in spike on RISC V  
 <img src="images/4.6.png" alt="Image 4.6">  
 
-
+<a name="Lab6"></a>
 # Lab 6 - Building 5-stage pipelined RISC-V processor  
 
 ### TL Verilog  
