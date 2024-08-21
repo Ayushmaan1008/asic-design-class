@@ -10,7 +10,7 @@
 5. [Implementation of an application in C language and compiling it in GCC and RISC V GCC](#Lab5)
 
 <a name="Lab1"></a>
-## Lab 1 - Compiling the C code in GCC. Here we'll compile a code to calculate sum of numbers from 1 to 10
+# Lab 1 - Compiling the C code in GCC. Here we'll compile a code to calculate sum of numbers from 1 to 10
 
 
 1. First we'll ensure that we are in home directory. For that we'll type the command cd. Then we'll be using leafpad text editor to write our C code for calculating the sum.
@@ -30,7 +30,7 @@
 These are the steps to perform this task
 
 <a name="Lab2"></a>
-## Lab 2 - Compiling the same C code in RISC V compiler
+# Lab 2 - Compiling the same C code in RISC V compiler
 
 1. Here we have first displayed the code our code content. Then using the command showed in the image, we are compiling the code using RISC gcc. Run it and it'll generate a file sum1ton.o
 <img src="images/1.png" alt="Image 1">
@@ -50,7 +50,7 @@ These are the steps to perform this task
 So using Ofast our set of instructions gets reduced as Ofast level applies a wider range of aggressive optimizations that streamline code, eliminate redundancies, and leverage parallelism, resulting in a reduced instruction count compared to O1.
 
 <a name="Lab3"></a>
-## Lab 3 - Debugging the code in Spike on RISC V
+# Lab 3 - Debugging the code in Spike on RISC V
 
 1. Here first we ran our code on risc v compiler. Now we'll debug it in spike. We'll open spike using the command mentioned
 ```
@@ -92,7 +92,7 @@ For refference
 <img src="images/2.5.png" alt="Image 2.5">
 
 <a name="Lab4"></a>
-## Lab 4 - Instruction formats in RISC V
+# Lab 4 - Instruction formats in RISC V
 In RISC-V, an instruction is a basic operation that a processor can execute. Each instruction typically corresponds to a single operation that the processor can perform on data, such as arithmetic operations, logical operations, memory operations, control flow operations, and so on. These instructions are encoded as binary values that the processor can interpret and execute.
 There are 6 instruction formats in RISC-V:
 
@@ -437,7 +437,7 @@ SLL R15,R11,R2
 
 
 <a name="Lab5"></a>
-## Lab 5 - Implementation of an application in C language and compiling it in GCC and RISC V GCC
+# Lab 5 - Implementation of an application in C language and compiling it in GCC and RISC V GCC
 1. This is our C program. It calculates the mileage of the car and based on that provides on whether air conditioner should be used or not. This helps in fuel efficiency.
 <img src="images/4.1.png" alt="Image 4.1">  
 
@@ -456,5 +456,281 @@ Ofast
 
 5. In the final step we'll debug our code in spike on RISC V  
 <img src="images/4.6.png" alt="Image 4.6">  
+
+
+# Lab 6 - Building 5-stage pipelined RISC-V processor  
+
+### TL Verilog  
+TL Verilog is a higher-level abstraction of Verilog used to model and verify digital systems by focusing on transactions rather than detailed signal manipulations. It simplifies the design process by allowing engineers to describe complex interactions and data exchanges between components at a more abstract level, making the code more readable and maintainable. TL Verilog is particularly useful in conjunction with verification methodologies and tools like SystemVerilog and UVM, streamlining the verification of intricate systems-on-chip and improving overall design efficiency.
+
+### Makerchip for TL Verilog  
+Using Makerchip for TL Verilog offers several advantages, particularly for those interested in transaction-level modeling and verification:
+
+1) Interactive Environment: Makerchip provides a web-based platform where you can write, simulate, and test TL Verilog code in real-time. This interactive environment is ideal for experimenting with transaction-level models without needing complex software installations.
+
+2) Educational Resources: Makerchip includes tutorials, examples, and documentation that can help you get up to speed with TL Verilog. It’s a useful tool for learning how to model and verify systems at a higher abstraction level.
+
+3) Ease of Use: The platform simplifies the process of running simulations and debugging TL Verilog code. Its user-friendly interface can make it easier to understand and visualize transaction-level interactions and behaviors.  
+
+### Simple calculator in Makerchip  
+My calculator consists of these operations  
+   ```   $sum[31:0] = $val1[31:0] + $val2[31:0];  
+         $diff[31:0] = $val1[31:0] - $val2[31:0];  
+         $and[31:0] = $val1[31:0] && $val2[31:0];  
+         $or[31:0] = $val1[31:0] || $val2[31:0];
+```
+To implement them, we have used a 4x1 MUX. In TL verilog, it is implemented like this  
+``` 
+ $out[31:0] = $valid_or_reset ? 32'b0 :  
+                 ($sel[2:0] == 3'd0) ? $sum  
+                 : ($sel[2:0] == 3'd1) ? $diff  
+                 : ($sel[2:0] == 3'd2) ? $and   
+                 : ($sel[2:0] == 3'd3) ? $or  
+                 : >>2$mem[31:0];
+```  
+Here's the snapshot  
+<img src="images/5.1.png" alt="Image 4.6"> 
+
+### Free running counter  
+Here we'll add a counter that adds integer 1 to $num1 at each clock. The following code is used for the same  
+``` $num1[31:0] = $reset ? 0 : >>1$num1[31:0] + 1; ```  
+ <img src="images/5.2.png" alt="Image 4.6">  
+
+ ### Pipelined Sequential Calculator  
+ As noted earlier, sequential logic involves using values from different clock cycles than those where operations occur, a concept demonstrated in the Free Running Counter example. Moving forward, our calculator has been updated to "store" values using a Flip-Flop, with the value from $out[31:0] now being sent to $val1[31:0]. In Verilog, pipelining is implemented by designing a series of sequential stages, each as a separate module or block of logic, connected through registers. Each stage handles a part of the computation, passing data to the next stage with each clock cycle. For this example, we will integrate the Counter and Calculator into a single pipeline stage. To initiate a pipeline, use the command |cacl with proper indentation, and to assign a pipelining stage to a set of operations or a module, use the command @int, where the integer value represents the stage related to the clock cycle.  
+
+Reference snapshot  
+<img src="images/5.3.png" alt="Image 4.6">  
+
+Reference code  
+``` $reset = *reset;
+   |calc
+      @1
+         $val1[31:0] = >>2$out[31:0];
+         $val2[31:0] = $rand2[3:0];
+   
+         $sum[31:0] = $val1[31:0] + $val2[31:0];
+         $diff[31:0] = $val1[31:0] - $val2[31:0];
+         $and[31:0] = $val1[31:0] && $val2[31:0];
+         $or[31:0] = $val1[31:0] || $val2[31:0];
+   
+         $sel[2:0] = $rand3[2:0];
+         $num1 = $reset ? 0 : >>1$num1 + 1;
+      @2
+         $valid_or_reset = $reset || $valid;  
+         $mem[31:0] = $valid_or_reset ? 0 :  
+                      ($sel[2:0] == 3'd5) ? 
+                      >>2$out[31:0]: >>2$mem[31:0]; 
+         
+         
+         
+         
+         $out[31:0] = $valid_or_reset ? 32'b0 :($sel        [2:0] == 3'd0) ? $sum
+                     : ($sel[2:0] == 3'd1) ? $diff
+                     : ($sel[2:0] == 3'd2) ? $and
+                     : ($sel[2:0] == 3'd3) ? $or
+                     : >>2$mem[31:0];  
+   ```
+
+## Basic RISC-V CPU micro-architecture    
+In this section we are going to code for the following cases -  
+1) Program counter
+2) Instruction fetch
+3) Instruction decode
+4) Extracting instruction fileds
+5) Decoding instructions  
+6) Register file read
+7) ALU operations for ADD/ADDI
+8) Register file write  
+9) Implementing branch instruction 
+10) Testbench 
+    
+Here we have the snapshot for each case  -
+
+1) <img src="images/5.4.png" alt="Image 4.6">  
+  
+2) <img src="images/5.5.png" alt="Image 4.6">
+
+   <img src="images/5.6.png" alt="Image 4.6">
+3) <img src="images/5.7.png" alt="Image 4.6">
+
+4) <img src="images/5.8.png" alt="Image 4.6">
+
+5) <img src="images/5.9.png" alt="Image 4.6">  
+
+6) <img src="images/5.10.png" alt="Image 4.6">  
+
+7) <img src="images/5.11.png" alt="Image 4.6"> 
+
+8) <img src="images/5.12.png" alt="Image 4.6">
+
+9) <img src="images/5.13.png" alt="Image 4.6">
+
+10) <img src="images/5.14.png" alt="Image 4.6">
+
+Here I have attached the log files, visual, waveform and diagram of my code  
+
+1) Log file 
+   <img src="images/5.15.png" alt="Image 4.6">   
+
+2) Visual
+   <img src="images/5.16.png" alt="Image 4.6">   
+
+3) Waveform  
+   <img src="images/5.17.png" alt="Image 4.6">  
+
+4) Diagram
+   <img src="images/5.18.png" alt="Image 4.6">  
+
+   Sum 1 to 9  
+   <img src="images/5.20.png" alt="Image 4.6"> 
+
+
+## Complete Pipelined RISC-V CPU micro-architecture  
+
+### Valid Signal  
+We use following code to find valid signal for program counter  
+``` 
+$start = >>1$reset && !$reset;    
+$valid = $reset ? 1'b0 : ($start || >>3$valid);
+```
+For a new valid branch signal we type   
+ ```
+ $valid_taken_br = $valid && $taken_branch;
+```
+Incorporate this into program counter  
+```
+$pc[31:0] = >>1$reset ? 1'b0 : >>3$valid_taken_branch ? >>3$br_tgt_pc : >>1$pc + 32'd4;
+```
+## Branch target path  
+Here we are defining $valid, $valid_load and $valid_jump and are incorporating it in $valid in stage 1.  
+
+```
+$valid = !(>>1$valid_taken_branch || >>2$valid_taken_branch || >>1$valid_load || >>2$valid_load 
+                    || >>1$valid_jump || >>2$valid_jump) ;
+                    
+         $valid_load = $valid && $is_load ;
+         $valid_jump = $valid && $is_load;      
+```
+
+We'll add following instructions too  
+```
+$is_load = $dec_bits ==? 11'bx_xxx_0000011;
+         $is_sb = $dec_bits ==? 11'bx_000_0100011;
+         $is_sh = $dec_bits ==? 11'bx_001_0100011;
+         $is_sw = $dec_bits ==? 11'bx_010_0100011;
+         $is_slti = $dec_bits ==?11'bx_010_0010011;
+         $is_sltiu = $dec_bits ==?11'bx_011_0010011;
+         $is_xori = $dec_bits ==? 11'bx_100_0010011;
+         $is_ori = $dec_bits ==? 11'bx_110_0010011;
+         $is_andi = $dec_bits ==? 11'bx_111_0010011;
+         $is_slli = $dec_bits ==? 11'b0_001_0010011;
+         $is_srli = $dec_bits ==? 11'b0_101_0010011;
+         $is_srai = $dec_bits ==? 11'b1_101_0010011;
+         $is_sub = $dec_bits ==? 11'b1_000_0110011;
+         $is_sll = $dec_bits ==? 11'b0_001_0110011;
+         $is_slt = $dec_bits ==? 11'b0_010_0110011;
+         $is_sltu = $dec_bits ==? 11'b0_011_0110011;
+         $is_xor = $dec_bits ==? 11'b0_100_0110011;
+         $is_srl = $dec_bits ==? 11'b0_101_0110011;
+         $is_sra = $dec_bits ==? 11'b1_101_0110011;
+         $is_or = $dec_bits ==? 11'b0_110_0110011;
+         $is_and = $dec_bits ==? 11'b0_111_0110011;
+         $is_lui = $dec_bits ==? 11'bx_xxx_0110111;
+         $is_auipc = $dec_bits ==? 11'bx_xxx_0010111;
+         $is_jal = $dec_bits ==? 11'bx_xxx_1101111;
+         $is_jalr = $dec_bits ==? 11'bx_000_1100111;
+         $is_jump = $is_jal || $is_jalr ;
+```   
+
+## Update register read  
+The code for updating register read is  
+```
+$rf_rd_en1 = $rs1_use && >>2$result;
+         $rf_rd_index1[4:0] = $rs1;
+         $rf_rd_en2 = $rs2_use && >>2$result;
+         $rf_rd_index2[4:0] = $rs2;
+```
+
+## Data Memory  
+```
+$dmem_wr_en = $is_s_instr && $valid ;
+         $dmem_addr[3:0] = $result[5:2] ;
+         $dmem_wr_data[31:0] = $src2_value ;
+         $dmem_rd_en = $is_load ;
+```
+
+## Load data  
+```
+$ld_data[31:0] = $dmem_rd_data ;
+```
+
+## Adding instruction signals  
+```
+$result[31:0] = $is_addi ? $src1_value + $imm :
+              $is_add ? $src1_value + $src2_value :
+              $is_andi ? $src1_value & $imm :
+              $is_ori  ? $src1_value | $imm :
+              $is_xori ? $src1_value ^ $imm :
+              $is_slli ? $src1_value << $imm[5:0] :
+              $is_srli ? $src1_value >> $imm[5:0] :
+              $is_and ? $src1_value & $src2_value :
+              $is_or ? $src1_value | $src2_value :
+              $is_xor ? $src1_value ^ $src2_value :
+              $is_sub ? $src1_value - $src2_value :
+              $is_sll ? $src1_value << $src2_value[4:0] :
+              $is_srl ? $src1_value >> $src2_value[4:0] :
+              $is_sltu ? $src1_value < $src2_value :
+              $is_sltiu ? $src1_value < $imm :
+              $is_lui ? {$imm[31:12], 12'b0} :
+              $is_auipc ? $pc + $imm : 
+              $is_jal ? $pc + 32'd4 :
+              $is_jalr ? $pc + 32'd4 :
+              $is_srai ? {{32{$src1_value[31]}}, $src1_value} >> $imm[4:0] :
+              $is_slt ? ($src1_value[31] == $src2_value[31]) ? $sltu_rslt : {31'b0 $src1_value[31]} :
+              $is_slti ? ($src1_value[31] == $imm[31]) ? $sltiu_rslt : {31'b0, $src1_value[31]} :
+              $is_sra ? {{32{$src1_value[31]}}, $src1_value} >> $src2_value[4:0] :
+              $is_load || $is_s_instr ? $src1_value + $imm :
+              32'bx ;
+      @3
+         //Register File Write 
+         
+         $rf_wr_en = $rd_use && $rd != 5'b0 && $valid || >>2$valid_load;
+         $rf_wr_index[4:0] = >>2$valid_load ? >>2$rd : $rd;
+         $rf_wr_data[31:0] = >>2$valid_load ? >>2$ld_data :  $result;
+         
+         //Branch Instructions
+         
+         $taken_branch = $is_beq ? ($src1_value == $src2_value):
+                         $is_bne ? ($src1_value != $src2_value):
+                         $is_blt ? (($src1_value < $src2_value)^($src1_value[31] != $src2_value[31])):
+                         $is_bge ? (($src1_value >= $src2_value)^($src1_value[31] != $src2_value[31])):
+                         $is_bltu ? ($src1_value < $src2_value):
+                         $is_bgeu ? ($src1_value >= $src2_value):
+                                    1'b0;
+
+```
+
+#### It is advised to change the MACROS again  
+```
+|cpu
+      m4+imem(@1)    // Args: (read stage)
+      m4+rf(@2, @3)  // Args: (read stage, write stage) - if equal, no register bypass is required
+      m4+dmem(@4)    // Args: (read/write stage)
+
+   m4+cpu_viz(@4)    // For visualisation, argument should be at least equal to the last stage of CPU logic. @4 would work for all labs.
+```
+
+Diagram   
+<img src="images/5.21.png" alt="Image 4.6"> 
+
+### Waveforms  
+
+Wvaeform containing reset signal and clk_ayushmaan    
+<img src="images/5.22.png" alt="Image 4.6">   
+
+Waveform containing xreg14  
+<img src="images/5.23.png" alt="Image 4.6"> 
+
 
 
