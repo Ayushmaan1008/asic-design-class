@@ -9,6 +9,7 @@
 4. [Instruction formats in RISC V](#Lab4)
 5. [Implementation of an application in C language and compiling it in GCC and RISC V GCC](#Lab5)
 6. [Building 5-stage pipelined RISC-V processor](#Lab6)
+7. [Risc V CPU tlv code to verilog code conversion](#Lab7)
 
 <a name="Lab1"></a>
 # Lab 1 - Compiling the C code in GCC. Here we'll compile a code to calculate sum of numbers from 1 to 10
@@ -727,11 +728,55 @@ Diagram
 
 ### Waveforms  
 
-Wvaeform containing reset signal and clk_ayushmaan    
+Waveform containing reset signal and clk_ayushmaan    
 <img src="images/5.22.png" alt="Image 4.6">   
 
 Waveform containing xreg14  
 <img src="images/5.23.png" alt="Image 4.6"> 
+
+
+<a name="Lab7"></a>  
+# Risc V CPU tlv code to verilog code conversion  
+In the Lab 7, we'll be performing the following steps sequentially  
+1) Install python3
+2) Creating a virtual environment with python
+3) Downloading sandpiper-saas module  
+4) Creating testbench and simulating the verilog code  
+
+First execute the following command on linux terminal which'll install python3  
+```sudo apt install make python python3 python3-pip git iverilog gtkwave python3-venv```   
+
+Before we go ahead and convert our tlv code to verilog, we will first create a virtual environment. It'll help us in using additional python libraries. Otherwise we would have to needed to download them in our system.  
+Use this command for   
+```python -m venv .venv ```  
+Now install sandpiper-saas module using   
+```pip3 install sandpiper-saas```    
+Now this library will convert our tlv code to verilog code. Type  
+```sandpiper-saas -i ./tlv_code/RiscV_CPU.tlv -o RiscV_CPU.v --bestsv --noline -p verilog --outdir ./src/module/```  
+
+#### Creating testbench    
+We have to write a testbench to simulate our verilog code. Then type following command to compile verilog code.   
+```iverilog -o output/RiscV_CPU.out src/module/RiscV_CPU_tb.v -I src/include -I src/module```    
+
+After the verilog code gets compiled execute the out file to obtain the .vcd file to observe the waveforms using gtkwave  
+```
+./RV_CPU.out
+gtkwave RV_CPU_tb.vcd 
+```  
+#### Simulation Results     
+Waveform containing reset signal and clk_ayushmaan  
+<img src="images/5.22.png" alt="Image 4.6">    
+
+Waveform containing xreg14  
+<img src="images/5.23.png" alt="Image 4.6">   
+
+GTK Waveform  
+<img src="images/5.24.png" alt="Image 4.6">   
+
+
+
+
+
 
 
 
