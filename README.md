@@ -744,19 +744,29 @@ In the Lab 7, we'll be performing the following steps sequentially
 4) Creating testbench and simulating the verilog code  
 
 First execute the following command on linux terminal which'll install python3  
-```sudo apt install make python python3 python3-pip git iverilog gtkwave python3-venv```   
+```
+sudo apt install make python python3 python3-pip git iverilog gtkwave python3-venv
+```   
 
 Before we go ahead and convert our tlv code to verilog, we will first create a virtual environment. It'll help us in using additional python libraries. Otherwise we would have to needed to download them in our system.  
 Use this command for   
-```python -m venv .venv ```  
+```
+python -m venv .venv 
+```  
 Now install sandpiper-saas module using   
-```pip3 install sandpiper-saas```    
+```
+pip3 install sandpiper-saas
+```    
 Now this library will convert our tlv code to verilog code. Type  
-```sandpiper-saas -i ./tlv_code/RiscV_CPU.tlv -o RiscV_CPU.v --bestsv --noline -p verilog --outdir ./src/module/```  
+```
+sandpiper-saas -i ./tlv_code/RiscV_CPU.tlv -o RiscV_CPU.v --bestsv --noline -p verilog --outdir ./src/module/
+```  
 
 #### Creating testbench    
 We have to write a testbench to simulate our verilog code. Then type following command to compile verilog code.   
-```iverilog -o output/RiscV_CPU.out src/module/RiscV_CPU_tb.v -I src/include -I src/module```    
+```
+iverilog -o output/RiscV_CPU.out src/module/RiscV_CPU_tb.v -I src/include -I src/module 
+```    
 
 After the verilog code gets compiled execute the out file to obtain the .vcd file to observe the waveforms using gtkwave  
 ```
