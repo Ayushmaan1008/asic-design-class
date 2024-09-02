@@ -9,7 +9,8 @@
 4. [Instruction formats in RISC V](#Lab4)
 5. [Implementation of an application in C language and compiling it in GCC and RISC V GCC](#Lab5)
 6. [Building 5-stage pipelined RISC-V processor](#Lab6)
-7. [Risc V CPU tlv code to verilog code conversion](#Lab7)
+7. [Risc V CPU tlv code to verilog code conversion](#Lab7)  
+8. [BabySoc Simulation](#Lab8)
 
 <a name="Lab1"></a>
 # Lab 1 - Compiling the C code in GCC. Here we'll compile a code to calculate sum of numbers from 1 to 10
@@ -783,6 +784,7 @@ Waveform containing xreg14
 GTK Waveform  
 <img src="images/5.24.png" alt="Image 4.6">    
 
+<a name="Lab8"></a>
 # BabySoc Simulation   
 In Lab 8, we'll first install following in linux 
 1) iverilog
@@ -848,12 +850,12 @@ Please note that the above files except the RiscV_CPU.v have been taken from the
 The below screenshot shows the output of sum 1 to 9
 <img src="images/6.5.png" alt="Image 4.6">   
 Here,  
-* REF is the input clk reference signal to the PLL module.  
-* CLK is the output clk signal from the PLL module.  
+* REF is the input clk reference signal to the PLL module.    
+* CLK is the output clk signal from the PLL module.    
 * clk_ayushmaan is the clock used by the RISC-V CPU for the operations.  
-* reset is the reset signal for the RISC-V CPU.  
-* out is the ouput signal from the RISC-V CPU. Here we can observe the sum value from 1 to 9 over multiple clock cycles.  
-* OUT is the DAC output signal.   
+* reset is the reset signal for the RISC-V CPU.    
+* out is the ouput signal from the RISC-V CPU. Here we can observe the sum value from 1 to 9 over multiple clock cycles.    
+* OUT is the DAC output signal.      
 
 
 
