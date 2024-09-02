@@ -781,7 +781,79 @@ Waveform containing xreg14
 <img src="images/5.23.png" alt="Image 4.6">   
 
 GTK Waveform  
-<img src="images/5.24.png" alt="Image 4.6">   
+<img src="images/5.24.png" alt="Image 4.6">    
+
+# BabySoc Simulation   
+In Lab 8, we'll first install following in linux 
+1) iverilog
+2) gtkwave
+3) yosys
+4) opensta  
+
+For installing iverilog, use the command  
+```
+    sudo apt-get install iverilog
+```
+Afterwards to verify whether it has installed or not, type verilog and you'll get the output as shown in the figure    
+<img src="images/6.1.png" alt="Image 4.6">   
+
+For installing gtkwave, use the following command  
+```
+    sudo apt update
+    sudo apt install gtkwave
+```  
+Now to verify your installation, type gtkwave and you'll get output as shown in both the figures below  
+<img src="images/6.2.png" alt="Image 4.6"> 
+<img src="images/6.3.png" alt="Image 4.6">   
+
+For installing Yosys, use following commands  
+```
+    $ git clone https://github.com/YosysHQ/yosys.git
+    $ cd yosys
+    $ sudo apt install make (If make is not installed) 
+    $ sudo apt-get install build-essential clang bison flex \
+        libreadline-dev gawk tcl-dev libffi-dev git \
+        graphviz xdot pkg-config python3 libboost-system-dev \
+        libboost-python-dev libboost-filesystem-dev zlib1g-dev
+    $ make config-gcc
+    $ make 
+    $ sudo make install
+```  
+
+To verify your installation, type yosys in terminal and you'll get the following output  
+<img src="images/6.4.png" alt="Image 4.6">   
+
+For installing Open STA, refer to this github repository  
+https://github.com/The-OpenROAD-Project/OpenSTA  
+
+### BabySoc Simulation  
+Lets have a look over the IPs PLL and DAC.   
+#### PLL  
+A Phase-Locked Loop (PLL) is an electronic system that aligns the phase and frequency of its output signal with a given reference signal. It typically includes three core elements: a phase comparator that detects discrepancies between the reference and output phases, a loop filter that refines the error signal to enhance stability and reduce noise, and a voltage-controlled oscillator (VCO) that modifies its frequency in response to the filtered error, ensuring phase alignment. PLLs are commonly employed in tasks like clock generation, frequency synthesis, and data recovery in communication systems.  
+
+#### DAC  
+A Digital-to-Analog Converter (DAC) is an electronic component that transforms digital signals, often in binary form, into corresponding analog signals, such as voltage or current. This conversion is essential for enabling digital data to be processed by analog devices or for producing outputs that humans can perceive, such as sound or images. DACs are widely used in applications like audio playback, video rendering, and various signal processing tasks.  
+
+#### Required files  
+* src/module - contains all RTL files and testbench.v used for simulating our BabySoC design.  
+* src/include - contains RTL files used in `include define in main RTL files in src/module.  
+
+Please note that the above files except the RiscV_CPU.v have been taken from the below reference repo,  
+ https://github.com/Subhasis-Sahu/BabySoC_Simulation  
+
+#### Functional simulation  
+* iverilog -o output/RiscV_CPU.out src/module/RiscV_CPU_tb.v -I src/include -I src/module  
+* ./RiscV_CPU.out    
+* gtkwave dump.out      
+The below screenshot shows the output of sum 1 to 9
+<img src="images/6.5.png" alt="Image 4.6">   
+Here,  
+* REF is the input clk reference signal to the PLL module.  
+* CLK is the output clk signal from the PLL module.  
+* clk_ayushmaan is the clock used by the RISC-V CPU for the operations.  
+* reset is the reset signal for the RISC-V CPU.  
+* out is the ouput signal from the RISC-V CPU. Here we can observe the sum value from 1 to 9 over multiple clock cycles.  
+* OUT is the DAC output signal.   
 
 
 
