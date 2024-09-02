@@ -849,13 +849,14 @@ Please note that the above files except the RiscV_CPU.v have been taken from the
 * gtkwave dump.out      
 The below screenshot shows the output of sum 1 to 9
 <img src="images/6.5.png" alt="Image 4.6">   
-Here,  
-* REF is the input clk reference signal to the PLL module.    
-* CLK is the output clk signal from the PLL module.    
-* clk_ayushmaan is the clock used by the RISC-V CPU for the operations.  
-* reset is the reset signal for the RISC-V CPU.    
-* out is the ouput signal from the RISC-V CPU. Here we can observe the sum value from 1 to 9 over multiple clock cycles.    
-* OUT is the DAC output signal.      
+Here,        
+* REF is the input clk reference signal to the PLL module.         
+* CLK is the output clk signal from the PLL module.        
+* clk_ayushmaan is the clock used by the RISC-V CPU for the operations.      
+* reset is the reset signal for the RISC-V CPU.        
+* out is the ouput signal from the RISC-V CPU. Here we can observe the sum value from 1 to 9 over multiple clock cycles.        
+* OUT is the DAC output signal.        
+
 
 
 
