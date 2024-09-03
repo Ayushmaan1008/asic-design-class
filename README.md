@@ -737,7 +737,7 @@ Waveform containing xreg14
 
 
 <a name="Lab7"></a>  
-# Risc V CPU tlv code to verilog code conversion  
+# Lab 7 - Risc V CPU tlv code to verilog code conversion  
 In the Lab 7, we'll be performing the following steps sequentially  
 1) Install python3
 2) Creating a virtual environment with python
@@ -785,7 +785,7 @@ GTK Waveform
 <img src="images/5.24.png" alt="Image 4.6">    
 
 <a name="Lab8"></a>
-# BabySoc Simulation   
+# Lab 8 - BabySoc Simulation   
 In Lab 8, we'll first install following in linux 
 1) iverilog
 2) gtkwave
@@ -858,7 +858,10 @@ Here,
 *    clk_ayushmaan is the clock used by the RISC-V CPU for the operations.
 *    reset is the reset signal for the RISC-V CPU.        
 *    out is the ouput signal from the RISC-V CPU. Here we can observe the sum value from 1 to 9 over multiple clock cycles.        
-*    OUT is the DAC output signal.        
+*    OUT is the DAC output signal.     
+
+In the below figure, i have zoom out the gtkwave output to see the wave  
+<img src="images/Screenshot (676).png" alt="Image 4.6"><br>
 
 
 
