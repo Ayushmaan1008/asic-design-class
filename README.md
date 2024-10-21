@@ -11,6 +11,7 @@
 6. [Building 5-stage pipelined RISC-V processor](#Lab6)
 7. [Risc V CPU tlv code to verilog code conversion](#Lab7)  
 8. [BabySoc Simulation](#Lab8)
+9. [RTL Design using Verilog and SKY130 Technology](#Lab9)
 
 <a name="Lab1"></a>
 # Lab 1 - Compiling the C code in GCC. Here we'll compile a code to calculate sum of numbers from 1 to 10
@@ -863,6 +864,7 @@ Here,
 In the below figure, i have zoom out the gtkwave output to see the wave  
 <img src="images/Screenshot (676).png" alt="Image 4.6"><br>
 
+<a name="Lab9"></a>
 # Lab 9 - RTL Design using Verilog and SKY130 Technology       
 ## Day 1  
 
