@@ -1,10 +1,19 @@
 `timescale 1ns / 1ps
-
+`ifdef PRE_SYNTH_SIM
 `include "vsdbabysoc.v"
 `include "avsddac.v"
 `include "avsdpll.v"
 `include "RiscV_CPU.v"
 `include "clk_gate.v"
+`elsif POST_SYNTH_SIM
+`include "vsdbabysoc.v"
+`include "avsddac.v"
+`include "avsdpll.v"
+`include "RiscV_CPU_net.v"
+`include "clk_gate.v"
+`include "primitives.v"
+`include "sky130_fd_sc_hd.v"
+`endif
 
 module vsdbabysoc_tb;
 

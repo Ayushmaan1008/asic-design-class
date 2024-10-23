@@ -12,6 +12,7 @@
 7. [Risc V CPU tlv code to verilog code conversion](#Lab7)  
 8. [BabySoc Simulation](#Lab8)
 9. [RTL Design using Verilog and SKY130 Technology](#Lab9)
+10. [Synthesizing RISC-V using Yosys and post synthesis  BabySoc Simulation](#Lab10)
 
 <a name="Lab1"></a>
 # Lab 1 - Compiling the C code in GCC. Here we'll compile a code to calculate sum of numbers from 1 to 10
@@ -1183,6 +1184,52 @@ Here I have attached the screenshots of
 <img src="images/11_55.png" alt="Image 11.2">
 <img src="images/11_56.png" alt="Image 11.2">
 <img src="images/11_57.png" alt="Image 11.2">
+
+<a name="Lab10"></a>
+# Lab 10 - Synthesizing RISC-V using Yosys and post synthesis  BabySoc Simulation  
+We will be synthesizing the RISC-V core that we designed earlier in Verilog HDL.  
+Use the following commands
+```
+read_liberty -lib lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+read_verilog -I src/include/ -I src/module/ src/module/clk_gate.v src/module/RiscV_CPU.v
+synth -v RV_CPU
+dfflibmap -liberty lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+abc -liberty lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+write_verilog -noattr src/module/RV_CPU_netlist.v
+```
+Snapshot of Synthesis output    
+<img src="images/12_1.png" alt="Image 11.2">  
+
+Once we generate the netlist, we will conduct a gate-level simulation using the BabySoC model.
+
+The BabySoC model will include the gate-level synthesized CPU core, DAC module, and PLL module.
+
+Below are the commands for compiling with iVerilog and visualizing the waveform using GTKWave    
+```
+iverilog -DFUNCTIONAL -DUNIT_DELAY=#1 -DPOST_SYNTH_SIM src/module/RiscV_CPU_tb.v -I src/module/ -I src/include/ -I lib/verilog_model/
+./a.out  
+gtkwave post_synth_sim.vcd
+```  
+Snapshot of waveform obtained on gtkwave  
+
+<img src="images/12_2.png" alt="Image 11.2">  
+
+Zoomed-in snapshot  
+
+<img src="images/12_3.png" alt="Image 11.2">  
+
+
+Now when we compare the above two snapshots with pre synthesis waveform, we'll learn that the results are same.
+
+Snapshot of simulation before synthesis.  
+<img src="images/Screenshot (676).png" alt="Image 4.6"><br>  
+
+Snapshot of standard cell implemented in the synthesized verilog file    
+<img src="images/12_4.png" alt="Image 11.2">  
+
+Snapshot of signal of standard cell  
+<img src="images/12_5.png" alt="Image 11.2">
+
 
 
 
