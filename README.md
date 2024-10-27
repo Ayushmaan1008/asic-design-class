@@ -12,7 +12,8 @@
 7. [Risc V CPU tlv code to verilog code conversion](#Lab7)  
 8. [BabySoc Simulation](#Lab8)
 9. [RTL Design using Verilog and SKY130 Technology](#Lab9)
-10. [Synthesizing RISC-V using Yosys and post synthesis  BabySoc Simulation](#Lab10)
+10. [Synthesizing RISC-V using Yosys and post synthesis  BabySoc Simulation](#Lab10)    
+11. [STA for Synthesized Risc-V Core with OpenSTA ](#Lab11) 
 
 <a name="Lab1"></a>
 # Lab 1 - Compiling the C code in GCC. Here we'll compile a code to calculate sum of numbers from 1 to 10
@@ -1228,7 +1229,54 @@ Snapshot of standard cell implemented in the synthesized verilog file
 <img src="images/12_4.png" alt="Image 11.2">  
 
 Snapshot of signal of standard cell  
-<img src="images/12_5.png" alt="Image 11.2">
+<img src="images/12_5.png" alt="Image 11.2">    
+
+<a name="Lab11"></a>    
+
+# Lab 11 - STA for Synthesized Risc-V Core with OpenSTA  
+
+### Static time analysis  
+Static Timing Analysis (STA) verifies the timing performance of a digital circuit without dynamic simulation, checking if it meets timing constraints by analyzing timing paths. STA evaluates paths from input to output, considering delays of gates and interconnects. It checks for setup and hold time violations, ensuring data stability before and after clock edges. STA also incorporates clock definitions, including frequency and variations like skew or jitter, and assumes worst-case conditions for delays to ensure circuit performance under all conditions. Tools like Synopsys PrimeTime and Cadence Tempus automate this process, identifying timing issues early to ensure reliable circuit operation at intended speeds. STA is crucial for several reasons in digital circuit design. It verifies that data signals can propagate within required time limits, ensuring stable and valid outputs. It helps identify timing violations, ensuring reliable operation of flip-flops and sequential elements. STA allows designers to optimize performance by identifying and improving critical paths that limit the circuit's maximum operating frequency. It enables early detection of timing issues, reducing costly revisions later. STA also helps balance performance and power efficiency by analyzing the impact of clock frequency on power consumption. Automated STA tools efficiently analyze complex designs, incorporating variations in manufacturing, temperature, and voltage to ensure robust performance.  
+
+### Reg2Reg Path   
+A reg2reg path connects two sequential elements, like flip-flops, in a digital circuit. This path is essential in STA for verifying data flow from one register to another through combinational logic. Reg2reg paths ensure proper data flow and synchronization, especially in designs with pipelining or sequential operations. They are analyzed for setup and hold time constraints, ensuring data stability at the registers. Timing analysis includes delays through combinational logic connecting the registers. Critical reg2reg paths limit the circuit's maximum operating frequency, requiring optimization. If registers belong to different clock domains, additional considerations for metastability and synchronization are needed.  
+
+### Clk2Reg Path    
+A clk2reg path connects the clock signal to a register in a digital circuit, ensuring the register operates correctly in response to clock events. This path represents the time it takes for the clock signal to reach the register from the clock source, including delays from clock buffers or routing. In setup timing analysis, it determines when data must arrive at the register relative to the clock edge. Clock delay through distribution elements impacts the timing of data capture at the register. While primarily for setup time analysis, clk2reg paths also consider hold time, especially with clock jitter or variations. Analysis includes considerations for synchronization in different clock domains.   
+
+### STA for synthesized Risc-V core using time period of 9.3 seconds  
+In this task, we'll generate setup and hold timing reports for our synthesized RISC-V Core module. These reports are essential for verifying that the circuit meets its timing constraints, ensuring data signals propagate correctly through the core  
+Run the following commands  
+```
+read_liberty lib/sta/sky130_fd_sc_hd__tt_025C_1v80.lib
+read_verilog src/module/RiscV_CPU_net.v
+link_design RV_CPU
+
+create_clock -name clk -period 9.3 [get_ports clk]
+set_clock_uncertainty [expr 0.05 * 9.3] -setup [get_clocks clk]
+set_clock_uncertainty [expr 0.08 * 9.3] -hold [get_clocks clk]
+set_clock_transition [expr 0.05 * 9.3] [get_clocks clk]
+set_input_transition [expr 0.08 * 9.3] [all_inputs]
+
+
+report_checks -path_delay max
+report_checks -path_delay min
+```
+The clock period for our synthesized RISC-V Core module is specified as 9.3 ns. Key parameters for timing analysis include setup uncertainty at 5% of the clock period, which equates to 0.5175 ns, and the same value is set for clock transition time. Hold uncertainty is defined as 8%, amounting to 0.828 ns, with the input data transition also at 8%, or 0.828 ns. These precise settings are critical to ensure accurate setup and hold timing reports, verifying that the core meets its timing constraints for reliable operation.  
+
+Snapshots of reports  
+Reg2Reg max path    
+  
+<img src="images/13_1.png" alt="Image 11.2">   
+
+Reg2Reg min path   
+
+<img src="images/13_2.png" alt="Image 11.2">  
+
+
+
+
+
 
 
 
