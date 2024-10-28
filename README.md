@@ -1246,32 +1246,43 @@ A clk2reg path connects the clock signal to a register in a digital circuit, ens
 
 ### STA for synthesized Risc-V core using time period of 9.3 seconds  
 In this task, we'll generate setup and hold timing reports for our synthesized RISC-V Core module. These reports are essential for verifying that the circuit meets its timing constraints, ensuring data signals propagate correctly through the core  
-Run the following commands  
+Constraints provided to STA tool as a sdc file to generate timing reports    
 ```
-read_liberty lib/sta/sky130_fd_sc_hd__tt_025C_1v80.lib
-read_verilog src/module/RiscV_CPU_net.v
-link_design RV_CPU
+set_units -time ns
 
-create_clock -name clk -period 9.3 [get_ports clk]
+create_clock [get_pins {pll/CLK}] -name clk -period 9.3
 set_clock_uncertainty [expr 0.05 * 9.3] -setup [get_clocks clk]
 set_clock_uncertainty [expr 0.08 * 9.3] -hold [get_clocks clk]
 set_clock_transition [expr 0.05 * 9.3] [get_clocks clk]
 set_input_transition [expr 0.08 * 9.3] [all_inputs]
-
-
-report_checks -path_delay max
-report_checks -path_delay min
 ```
-The clock period for our synthesized RISC-V Core module is specified as 9.3 ns. Key parameters for timing analysis include setup uncertainty at 5% of the clock period, which equates to 0.5175 ns, and the same value is set for clock transition time. Hold uncertainty is defined as 8%, amounting to 0.828 ns, with the input data transition also at 8%, or 0.828 ns. These precise settings are critical to ensure accurate setup and hold timing reports, verifying that the core meets its timing constraints for reliable operation.  
+The clock period for our synthesized RISC-V Core module is specified as 9.3 ns. Key parameters for timing analysis include setup uncertainty at 5% of the clock period, which equates to 0.5175 ns, and the same value is set for clock transition time. Hold uncertainty is defined as 8%, amounting to 0.828 ns, with the input data transition also at 8%, or 0.828 ns. These precise settings are critical to ensure accurate setup and hold timing reports, verifying that the core meets its timing constraints for reliable operation.    
+Run the following command to execute the OpenSTA 
+```
+sta scripts/sta.conf  
+```   
+Contents of the sta.conf file,  
+```
+read_liberty -min ./lib/sta/sky130_fd_sc_hd__tt_025C_1v80.lib
+read_liberty -max ./lib/sta/sky130_fd_sc_hd__tt_025C_1v80.lib
+read_liberty -min ./lib/avsdpll.lib
+read_liberty -max ./lib/avsdpll.lib
+read_liberty -min ./lib/avsddac.lib
+read_liberty -max ./lib/avsddac.lib
+read_verilog ./src/module/vsdbabysoc_synth.v
+link_design vsdbabysoc
+read_sdc ./src/sdc/sta_post_synth.sdc
+```
+
 
 Snapshots of reports  
 Reg2Reg max path    
   
-<img src="images/13_1.png" alt="Image 11.2">   
+<img src="images/13_3.png" alt="Image 11.2">   
 
 Reg2Reg min path   
 
-<img src="images/13_2.png" alt="Image 11.2">  
+<img src="images/13_4.png" alt="Image 11.2">  
 
 
 
