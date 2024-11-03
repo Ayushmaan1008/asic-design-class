@@ -14,6 +14,7 @@
 9. [RTL Design using Verilog and SKY130 Technology](#Lab9)
 10. [Synthesizing RISC-V using Yosys and post synthesis  BabySoc Simulation](#Lab10)    
 11. [STA for Synthesized Risc-V Core with OpenSTA ](#Lab11) 
+12. [PVT Corner Analysis using OpenSTA](#Lab12)
 
 <a name="Lab1"></a>
 # Lab 1 - Compiling the C code in GCC. Here we'll compile a code to calculate sum of numbers from 1 to 10
@@ -1284,7 +1285,205 @@ Reg2Reg min path
 
 <img src="images/13_4.png" alt="Image 11.2">  
 
+<a name="Lab12"></a>
+# Lab 12 - PVT Corner Analysis using OpenSTA  
+Constraint files contents -  
+```
+set_units -time ns
+set PERIOD 9.3
+create_clock [get_pins {pll/CLK}] -name clk -period $PERIOD
+set_clock_uncertainty [expr 0.05 * $PERIOD] -setup [get_clocks clk]
+set_clock_uncertainty [expr 0.08 * $PERIOD] -hold [get_clocks clk]
+set_clock_transition [expr 0.05 * $PERIOD] [get_clocks clk]
 
+
+set_input_transition [expr $PERIOD * 0.08] [get_ports ENB_CP]
+set_input_transition [expr $PERIOD * 0.08] [get_ports ENB_VCO]
+set_input_transition [expr $PERIOD * 0.08] [get_ports REF]
+set_input_transition [expr $PERIOD * 0.08] [get_ports VCO_IN]
+set_input_transition [expr $PERIOD * 0.08] [get_ports VREFH]
+```  
+
+Contents of tickle script for automating STA procedure  
+```
+
+set list_of_lib_files(1) "sky130_fd_sc_hd__ff_100C_1v65.lib"
+set list_of_lib_files(2) "sky130_fd_sc_hd__ff_100C_1v95.lib"
+set list_of_lib_files(3) "sky130_fd_sc_hd__ff_n40C_1v56.lib"
+set list_of_lib_files(4) "sky130_fd_sc_hd__ff_n40C_1v65.lib"
+set list_of_lib_files(5) "sky130_fd_sc_hd__ff_n40C_1v76.lib"
+set list_of_lib_files(6) "sky130_fd_sc_hd__ff_n40C_1v95.lib"
+set list_of_lib_files(7) "sky130_fd_sc_hd__ss_100C_1v40.lib"
+set list_of_lib_files(8) "sky130_fd_sc_hd__ss_100C_1v60.lib"
+set list_of_lib_files(9) "sky130_fd_sc_hd__ss_n40C_1v28.lib"
+set list_of_lib_files(10) "sky130_fd_sc_hd__ss_n40C_1v35.lib"
+set list_of_lib_files(11) "sky130_fd_sc_hd__ss_n40C_1v40.lib"
+set list_of_lib_files(12) "sky130_fd_sc_hd__ss_n40C_1v44.lib"
+set list_of_lib_files(13) "sky130_fd_sc_hd__ss_n40C_1v60.lib"
+set list_of_lib_files(14) "sky130_fd_sc_hd__ss_n40C_1v76.lib"
+set list_of_lib_files(15) "sky130_fd_sc_hd__tt_025C_1v80.lib"
+set list_of_lib_files(16) "sky130_fd_sc_hd__tt_100C_1v80.lib"
+
+for {set i 1} {$i <= [array size list_of_lib_files]} {incr i} {
+read_liberty -min ./lib/timing/$list_of_lib_files($i)
+read_liberty -max ./lib/timing/$list_of_lib_files($i)
+read_liberty -min ./lib/avsdpll.lib
+read_liberty -max ./lib/avsdpll.lib
+read_liberty -min ./lib/avsddac.lib
+read_liberty -max ./lib/avsddac.lib
+read_verilog ./src/module/vsdbabysoc_synth.v
+link_design vsdbabysoc
+current_design
+read_sdc ./src/sdc/sta_post_synth.sdc
+check_setup -verbose
+report_checks -path_delay min_max -fields {nets cap slew input_pins fanout} -digits {4} > ./output/sta_output/min_max_$list_of_lib_files($i).txt
+
+exec echo "$list_of_lib_files($i)" >> ./output/sta_output/sta_worst_max_slack.txt
+report_worst_slack -max -digits {4} >> ./output/sta_output/sta_worst_max_slack.txt
+
+exec echo "$list_of_lib_files($i)" >> ./output/sta_output/sta_worst_min_slack.txt
+report_worst_slack -min -digits {4} >> ./output/sta_output/sta_worst_min_slack.txt
+
+exec echo "$list_of_lib_files($i)" >> ./output/sta_output/sta_tns.txt
+report_tns -digits {4} >> ./output/sta_output/sta_tns.txt
+
+exec echo "$list_of_lib_files($i)" >> ./output/sta_output/sta_wns.txt
+report_wns -digits {4} >> ./output/sta_output/sta_wns.txt
+}
+```    
+## Output for different library files  
+
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Library File</th>
+      <th>Total Negative Slack (TNS)</th>
+      <th>Worst Negative Slack (WNS)</th>
+      <th>Worst Setup Slack (Worst Slack)</th>
+      <th>Worst Hold Slack (Worst Slack)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>sky130_fd_sc_hd__ff_100C_1v65.lib</th>
+      <td>0.0000</td>
+      <td>0.0000</td>
+      <td>0.2111</td>
+      <td>-0.4626</td>
+    </tr>
+    <tr>
+      <th>sky130_fd_sc_hd__ff_100C_1v95.lib</th>
+      <td>0.0000</td>
+      <td>0.0000</td>
+      <td>2.5674</td>
+      <td>-0.5208</td>
+    </tr>
+    <tr>
+      <th>sky130_fd_sc_hd__ff_n40C_1v56.lib</th>
+      <td>-1193.3677</td>
+      <td>-4.4555</td>
+      <td>-4.4555</td>
+      <td>-0.4029</td>
+    </tr>
+    <tr>
+      <th>sky130_fd_sc_hd__ff_n40C_1v65.lib</th>
+      <td>-108.6873</td>
+      <td>-2.0103</td>
+      <td>-2.0103</td>
+      <td>-0.4425</td>
+    </tr>
+    <tr>
+      <th>sky130_fd_sc_hd__ff_n40C_1v76.lib</th>
+      <td>-0.0201</td>
+      <td>-0.0101</td>
+      <td>-0.0101</td>
+      <td>-0.4776</td>
+    </tr>
+    <tr>
+      <th>sky130_fd_sc_hd__ff_n40C_1v95.lib</th>
+      <td>0.0000</td>
+      <td>0.0000</td>
+      <td>2.0716</td>
+      <td>-0.5198</td>
+    </tr>
+    <tr>
+      <th>sky130_fd_sc_hd__ss_100C_1v40.lib</th>
+      <td>-17688.2051</td>
+      <td>-24.8781</td>
+      <td>-24.8781</td>
+      <td>0.2628</td>
+    </tr>
+    <tr>
+      <th>sky130_fd_sc_hd__ss_100C_1v60.lib</th>
+      <td>-9087.0791</td>
+      <td>-13.5343</td>
+      <td>-13.5343</td>
+      <td>-0.0131</td>
+    </tr>
+    <tr>
+      <th>sky130_fd_sc_hd__ss_n40C_1v28.lib</th>
+      <td>-80471.7031</td>
+      <td>-117.1601</td>
+      <td>-117.1601</td>
+      <td>1.1634</td>
+    </tr>
+    <tr>
+      <th>sky130_fd_sc_hd__ss_n40C_1v35.lib</th>
+      <td>-50354.4688</td>
+      <td>-72.0574</td>
+      <td>-72.0574</td>
+      <td>0.6975</td>
+    </tr>
+    <tr>
+      <th>sky130_fd_sc_hd__ss_n40C_1v40.lib</th>
+      <td>-38594.0156</td>
+      <td>-54.5613</td>
+      <td>-54.5613</td>
+      <td>0.4748</td>
+    </tr>
+    <tr>
+      <th>sky130_fd_sc_hd__ss_n40C_1v44.lib</th>
+      <td>-32623.3867</td>
+      <td>-45.9168</td>
+      <td>-45.9168</td>
+      <td>0.3375</td>
+    </tr>
+    <tr>
+      <th>sky130_fd_sc_hd__ss_n40C_1v60.lib</th>
+      <td>-15937.9834</td>
+      <td>-22.9076</td>
+      <td>-22.9076</td>
+      <td>0.0082</td>
+    </tr>
+    <tr>
+      <th>sky130_fd_sc_hd__ss_n40C_1v76.lib</th>
+      <td>-9395.4395</td>
+      <td>-13.9140</td>
+      <td>-13.9140</td>
+      <td>-0.2038</td>
+    </tr>
+    <tr>
+      <th>sky130_fd_sc_hd__tt_025C_1v80.lib</th>
+      <td>-411.7515</td>
+      <td>-2.7791</td>
+      <td>-2.7791</td>
+      <td>-0.4003</td>
+    </tr>
+    <tr>
+      <th>sky130_fd_sc_hd__tt_100C_1v80.lib</th>
+      <td>-121.4369</td>
+      <td>-1.9982</td>
+      <td>-1.9982</td>
+      <td>-0.4020</td>
+    </tr>
+  </tbody>
+</table>  
+
+## Graph of worst negative slack    
+<img src="images/WSS.png" alt="Image 11.2">  
+
+## Graph of worst hold slack  
+<img src="images/WHS.png" alt="Image 11.2">
 
 
 

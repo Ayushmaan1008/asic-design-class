@@ -1,6 +1,13 @@
 set_units -time ns
-create_clock [get_pins {pll/CLK}] -name clk -period 9.3
-set_clock_uncertainty [expr 0.05 * 9.3] -setup [get_clocks clk]
-set_clock_uncertainty [expr 0.08 * 9.3] -hold [get_clocks clk]
-set_clock_transition [expr 0.05 * 9.3] [get_clocks clk]
-set_input_transition [expr 0.08 * 9.3] [all_inputs]
+set PERIOD 9.3
+create_clock [get_pins {pll/CLK}] -name clk -period $PERIOD
+set_clock_uncertainty [expr 0.05 * $PERIOD] -setup [get_clocks clk]
+set_clock_uncertainty [expr 0.08 * $PERIOD] -hold [get_clocks clk]
+set_clock_transition [expr 0.05 * $PERIOD] [get_clocks clk]
+
+
+set_input_transition [expr $PERIOD * 0.08] [get_ports ENB_CP]
+set_input_transition [expr $PERIOD * 0.08] [get_ports ENB_VCO]
+set_input_transition [expr $PERIOD * 0.08] [get_ports REF]
+set_input_transition [expr $PERIOD * 0.08] [get_ports VCO_IN]
+set_input_transition [expr $PERIOD * 0.08] [get_ports VREFH]
