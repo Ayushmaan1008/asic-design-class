@@ -1483,7 +1483,14 @@ report_wns -digits {4} >> ./output/sta_output/sta_wns.txt
 <img src="images/WSS.png" alt="Image 11.2">  
 
 ## Graph of worst hold slack  
-<img src="images/WHS.png" alt="Image 11.2">
+<img src="images/WHS.png" alt="Image 11.2">   
+
+## Graph of total negative slack measured    
+<img src="images/TNS.png" alt="Image 11.2">   
+
+## Graph of Worst negative slack  measured  
+<img src="images/WNS.png" alt="Image 11.2">
+
 
 
 
