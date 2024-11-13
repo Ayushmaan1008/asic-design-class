@@ -1558,13 +1558,23 @@ Set the package required by OpenLane
 ```
 package require openlane 0.9
 ```  
+<img src="images/12_15.jpeg" alt="Image 11.2">
 
 #### Synthesis  
 Run the synthesis  
 ```
 run_synthesis
-```  
+```    
 
+<img src="images/12_16.jpeg" alt="Image 11.2">   
+
+     
+
+To view the netlist  
+```
+cd designs/picorv32a/runs/11-11_19-02/results/synthesis/
+gedit picorv32a.synthesis.v
+```
 OpenLane invokes the following   
 * Yosys - RTL Synthesis and maps to yosys generic cells   
 
@@ -1572,14 +1582,20 @@ OpenLane invokes the following
 
 * OpenSTA - This does the Static Timing Analysis on the netlist generated after synthesis and generated the timing reports  
 
-View the synthesis statistics  
 
 
+Flops ratio
+The flop ratio is defined as the ratio of the number of flops to the total number of cells
+Here flop ratio is 1596/10104 = 0.1579 (i.e: 15.8%) [From the synthesis statistics]
+
+
+<img src="images/12_17.png" alt="Image 11.2">  
 
 #### Key Concepts  
-Flops ratio  
+Flops ratio    
+<img src="images/12_18.png" alt="Image 11.2">
 * The flop ratio is defined as the ratio of the number of flops to the total number of cells  
-* Here flop ratio is 1596/10104 = 0.1579 (i.e: 15.8%) [From the synthesis statistics]        
+* Here flop ratio is 1613/14876 = 0.108 (i.e: 10.8%) [From the synthesis statistics]        
 
 ## Day 2  
 ### Chip Floor Planning Consideration  
