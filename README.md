@@ -1489,7 +1489,410 @@ report_wns -digits {4} >> ./output/sta_output/sta_wns.txt
 <img src="images/TNS.png" alt="Image 11.2">   
 
 ## Graph of Worst negative slack  measured  
-<img src="images/WNS.png" alt="Image 11.2">
+<img src="images/WNS.png" alt="Image 11.2">    
+
+# Lab 13 - Physical Design using Openlane  
+
+## Day 1
+
+### Introduction    
+With the advent of open-source technology for chip design, numerous RTL designs and EDA tools became freely accessible. The [SKY130 PDK] fills a crucial role in the open-source chip development ecosystem, provided by Skywater Technologies and Google (https://skywater-pdk.readthedocs.io/en/latest/rules.html). A variety of EDA tools with unique functions existed at different stages of the design process, but the design flow remained unclear, and the Skywater PDK was only compatible with proprietary equipment. These issues were resolved by OpenLane (https://github.com/The-OpenROAD-Project/OpenLane), which delivers a fully automated and streamlined RTL to GDSII flow. OpenLane is not a standalone product but a workflow consisting of several EDA tools, automation scripts, and the Skywater PDK, all optimized for integration with open-source EDA tools.  
+
+### Overall design flow  
+An RTL design is generated based on a design specification using hardware description languages (HDLs) like Verilog or VHDL, or through high-level synthesis tools such as SystemC, MATLAB HDL Coder, Bluespec, and others. Once the RTL netlist is created, the process of turning it into a manufactured integrated circuit (IC) begins, which is referred to as the Physical Design Flow. The first step in this flow is floor planning, which involves the placement of pre-existing cells, power planning, and other foundational tasks. Next, logical synthesis placement is carried out. To minimize clock skew and keep it within acceptable limits, Clock Tree Synthesis (CTS) is performed. After CTS, the various components are routed. Throughout the entire physical design flow—from logic synthesis to routing—Static Timing Analysis (STA) is employed at each stage to check the design's integrity and ensure it meets timing requirements. Magic, an open-source tool, is used to visualize the layout at every stage. It also allows users to extract small netlists, run SPICE simulations, and compare the results with post-layout simulations using ngspice. The physical design process begins with floor planning (cell placement, power planning, etc.) and continues with placement.      
+
+
+<img src="images/12_6.png" alt="Image 11.2">    
+
+### OpenLane Flow  
+
+#### 1. Synthesis  
+The RTL Level Design is synthesized using Yosys, an open-source logic synthesizer, which converts the RTL Netlist into a synthesized netlist with details about standard cells and their implementations. Yosys uses the RTL design, timing libraries, and Verilog models of standard cells for this process, while abc handles technology mapping to SkyWater-PDK variants. Synthesis strategies can be optimized for minimal area or optimal timing, with a synthesis exploration utility generating reports on delays, timing, and area. The design exploration utility tailors the design configuration, providing reports with various metrics for optimal selection and is also used for regression testing. Optionally, Design For Test (DFT) insertion, carried out by Fault, tests the design to ensure its functionality and reliability.  
+
+#### 2. Floor Planning and Power Planning  
+The OpenROAD flow handles this process by placing macros and IPs in the core during the pre-placement phase. Macro floor planning, which places macros closer to inputs, outputs, or other macros with more connections, is done separately. Decoupling capacitors are added to maintain logic states within the noise margin and prevent loading effects. To address voltage droop at Vdd and ground bounce at Vss, which can push logic states out of the noise margin, Vdd and Vss are distributed as horizontal and vertical strips across the chip, ensuring blocks can access power from the nearest source.  
+
+#### 3. Placement  
+Placement in chip design involves two main steps to ensure the required logic is optimally positioned. First, Global Placement finds the best position for each cell, though these positions may not be entirely accurate and can result in overlaps. Then, Detailed Placement makes minimal adjustments to resolve any issues from the global placement, ensuring all cells are correctly placed without overlap. This method ensures that the logic is correctly and optimally positioned within the design.  
+
+#### 4. Clock Tree Synthesis  
+To ensure minimum skew the Clock is routed optimally through the circuit using different algorithms. This is done in the OpenROAD flow. This is done by TritonCTS.  
+
+#### 5. Fake Antenna and diode swapping  
+During fabrication, long wires can act as antennas, accumulating charges that may damage transistors. To mitigate this, bridging passes the wire through different layers or an antenna diode cell is added to discharge accumulated charges. In the OpenLane approach, fake diodes are inserted at every cell input during placement, matching the antenna diode's footprint. If violations are detected by the Antenna Checker, the fake diode is replaced with a real one. Conversely, the OpenROAD approach addresses antenna violations automatically during the global routing step by inserting antenna diodes. OpenLane provides the flexibility to choose either method.  
+
+#### 6. Routing  
+This step involves implementing the interconnect using the various metal layers specified in the PDK. It includes two phases:
+
+Global Routing: Conducted within the OpenROAD flow using FastRoute.
+
+Detailed Routing: Carried out with TritonRoute outside the OpenROAD flow following global routing. Before this step, Yosys performs a Logic Equivalence Check to ensure that the optimizations by OpenROAD have not altered the circuit's functionality.   
+
+#### 7. RC Extraction  
+From the .def file, the parasitic extraction is done to generate the .spef file (Standard Prasitic Exchange Format) which produces an accurate analog model of the circuit by including the parasitic effects due to wires, parasitic capacitances, etc.  
+
+#### 8. STA  
+At this stage again OpenSTA is used to perform the Static Timing Analysis.  
+
+#### 9. Sign-off Steps  
+Design Rule Check (DRC) is performed by Magic
+
+Layout Versus Schematic (LVS) is performed by Netgen
+ 
+#### 10. GDSII Extraction   
+The routed .def file is used my Magic to generate the GDSII file   
+
+### Execution of 'picorv32a' using OpenLane flow   
+
+To start the openlane, go to openlane directory and open terminal  
+```
+make mount
+```
+
+The terminal changes into the docker instance. Open the OpenLane in interactive mode.  
+```
+./flow.tcl -interactive
+```  
+
+Set the package required by OpenLane  
+```
+package require openlane 0.9
+```  
+
+#### Synthesis  
+Run the synthesis  
+```
+run_synthesis
+```  
+
+OpenLane invokes the following   
+* Yosys - RTL Synthesis and maps to yosys generic cells   
+
+* abc - Technology mapping with the Skywater130 PDK. Here sky130_fd_sc_hd Skywater Foundry produced High density standard cells are used.  
+
+* OpenSTA - This does the Static Timing Analysis on the netlist generated after synthesis and generated the timing reports  
+
+View the synthesis statistics  
+
+
+
+#### Key Concepts  
+Flops ratio  
+* The flop ratio is defined as the ratio of the number of flops to the total number of cells  
+* Here flop ratio is 1596/10104 = 0.1579 (i.e: 15.8%) [From the synthesis statistics]        
+
+## Day 2  
+### Chip Floor Planning Consideration  
+#### Utilisation Factor   
+* The ratio of area occupied by the cells in the netlist to the total area of the core.  
+* Best practice is to set the utilisation factor less than 50% so that there will be space for optimisations, routing, inserting buffers etc  
+
+#### Aspect Ratio  
+* Aspect ratio is the ratio of height to the width of the die.
+* Aspect Ratio of 1 indicates that the die is a square die.  
+
+#### Floorplanning   
+Floorplanning involves the following stages    
+
+#### Pre-Placed cells    
+When dealing with complex logic repeated multiple times or a third-party design, it can be perceived as an abstract black box with input/output ports and clocks. These modules are categorized as either macros or IPs. 
+
+**Macros** are modules like CPU cores developed by the entity fabricating the chip. **IPs (Intellectual Property)** are packages obtained from third parties or pre-packaged Hard IPs developed by the same entity, such as SRAM, PLL, and protocol converters. Initially, these macros and IPs are placed in the core before placing standard cells and planning power distribution. They are strategically positioned to ensure that highly connected cells are placed nearby and oriented for efficient input and output connections.   
+
+#### Decoupling Capacitors to the pre placed cells    
+Power lines can have RLC components, causing voltage drops at the node where they enter the blocks or the cell ground to be at a higher potential than the ideal 0V. This can lead to logic transitions falling into forbidden states, causing circuit misbehavior. To prevent this, a capacitor is added in parallel with the power and ground nodes of the block. This capacitor decouples the block from the power source during logic transitions, maintaining the integrity of the circuit's operation.  
+
+#### Power Planning   
+When multiple cells or blocks draw power from the same power rail and sink power to the same ground pin, several effects can occur. A logic transition from 1 to 0 in numerous cells simultaneously can lead to a **Voltage Droop**, where the voltage drops from Vdd in the power lines. Conversely, a transition from 0 to 1 in many cells at once can cause the ground potential to rise above 0V, known as a **Ground Bump**. These effects risk pushing the logic state out of the specified noise margin. To mitigate this, Vdd and Gnd are arranged in a grid of horizontal and vertical tracks, allowing cells near an intersection to tap power from Vdd or sink power to Gnd, maintaining stable logic states.    
+
+#### Pin Placement  
+* The input, output and Clock pins are placed optimally such that there is less complication in routing or optimised delay  
+* There are different styles of pin placement in openlane like random pin placement , uniformly spaced etc   
+
+### Floorplan run on OpenLANE & review layout in Magic  
+** Floorplan envrionment variables or switches: **  
+FP_CORE_UTIL - core utilization percentage  
+FP_ASPECT_RATIO - the cores aspect ratio  
+FP_CORE_MARGIN - The length of the margin surrounding the core area   
+FP_IO_MODE - defines pin configurations around the core(1 = randomly equidistant/0 = not equidistant)
+FP_CORE_VMETAL - vertical metal layer where I/O pins are placed   
+FP_CORE_HMETAL - horizontal metal layer where I/O pins are placed   
+
+Note: Usually, the parameter values for vertical metal layer and horizontal metal layer will be 1 more than that specified in the files  
+
+### Library Binding and Placement   
+
+#### Netlist Binding and initial place design   
+First we need to bind the netlist with physical cells. We have shapes for OR, AND and every cell for pratice purpose. But in reality we dont have such shapes, we have give an physical dimensions like rectangles or squares weight and width. This information is given in libs and lefs. Now we place these cells in our design by initilaising it.   
+
+#### Optimize Placement  
+The next step is placement. Once we initial the design, the logic cells in netlist in its physical dimisoins is placed on the floorplan. Placement is perfomed in 2 stages:
+
+Global Placement: Cells will be placed randomly in optimal positions which may not be legal and cells may overlap. Optimization is done through reduction of half parameter wire length. Detailed Placement: It alters the position of cells post global placement so as to legalise them. Legalisation of cells is important from timing point of view.
+
+Optimization is stage where we estimate the lenght and capictance, based on that we add buffers. Ideally, Optimization is done for better timing.    
+
+#### Congestion aware Placement  
+
+#### Need for libraries and characterization  
+As we know, From logic synthesis to routing and STA, each and evry stage has one thing in common i.e., logic gates/ logic cells. In order for the tool understand these gates are and their timing, we need to characterize these cells.   
+
+#### Cell Design and characterization flows  
+Library is a place where we get information about every cell. It has differents cells with different size, functionality,threshold voltages. There is a typical cell design flow steps.
+
+1. Inputs : PDKS(process design kit) : DRC & LVS, SPICE Models, library & user-defined specs.  
+2. Design Steps :Circuit design, Layout design (Art of layout Euler's path and stick diagram), Extraction of parasitics, Characterization (timing, noise, power).  
+3. Outputs: CDL (circuit description language), LEF, GDSII, extracted SPICE netlist (.cir), timing, noise and power .lib files  
+
+#### Standard Cell Characterization Flow  
+In the industry, a standard cell characterization flow typically involves several key steps:
+
+1. **Read in the models and tech files**.
+2. **Read extracted SPICE Netlist**.
+3. **Recognize the behavior of the cells**.
+4. **Read the subcircuits**.
+5. **Attach power sources**.
+6. **Apply stimulus to the characterization setup**.
+7. **Provide necessary output capacitance loads**.
+8. **Provide necessary simulation commands**.
+
+These steps are combined into a configuration file and processed by characterization software called **GUNA**, which generates timing, noise, and power models. The resulting .lib files are categorized into **timing characterization**, **power characterization**, and **noise characterization**.    
+
+<img src="images/12_14.png" alt="Image 11.2">  
+
+#### Timing threshold definitions   
+| Timing Definition     | Value       |
+|-----------------------|-------------|
+| slew_low_rise_thr     | 20% value   |
+| slew_high_rise_thr    | 80% value   |
+| slew_low_fall_thr     | 20% value   |
+| slew_high_fall_thr    | 80% value   |
+| in_rise_thr           | 50% value   |
+| in_fall_thr           | 50% value   |
+| out_rise_thr          | 50% value   |
+| out_fall_thr          | 50% value   |
+
+#### Propagation Delay and Transition Time   
+Propagation Delay The time difference between when the transitional input reaches 50% of its final value and when the output reaches 50% of its final value. Poor choice of threshold values lead to negative delay values. Even thought you have taken good threshold values, sometimes depending upon how good or bad the slew, the dealy might be still +ve or -ve.
+
+```
+Propagation delay = time(out_thr) - time(in_thr)
+```
+
+##### Transition Time   
+
+The time it takes the signal to move between states is the transition time , where the time is measured between 10% and 90% or 20% to 80% of the signal levels.  
+```
+Rise transition time = time(slew_high_rise_thr) - time (slew_low_rise_thr)
+
+Low transition time = time(slew_high_fall_thr) - time (slew_low_fall_thr)
+```   
+
+
+
+
+
+
+## Day 3
+## Design Library Cell using ngspice simulations  
+### CMOS inverter ngspice simulations  
+``ngspice`` is opesoure engine where simulations are done.   
+#### IO Placer revision  
+* PnR is a iterative flow and hence, we can make changes to the environment variables in the fly to observe the changes in our design.
+* Let us say If I want to change my pin configuration along the core from equvi distance randomly placed to someother placement, we just set that IO mode variable on command prompt as shown below  
+```
+set ::env(FP_IO_MODE) 2
+```  
+#### SPICE Deck Creation and Simulation for CMOS inverter    
+A SPICE deck encompasses crucial information such as the model description, netlist description, component connectivity, component values, capacitance load, nodes, simulation type and parameters, and included libraries. Before running a SPICE simulation, it's necessary to create this deck, which provides specific details. These include component connectivity, such as the connections for Vdd, Vss, Vin, and the substrate, which tunes the MOS threshold voltage; component values, including those for PMOS and NMOS, output load, input gate voltage, and supply voltage; node identification; simulation commands; and the model file, which contains parameters for NMOS and PMOS specific to the technology used. This detailed setup ensures accurate and reliable simulation results.   
+<img src="images/12_11.png" alt="Image 11.2">   
+From the waveform we can see the characteristics are maintained across all sizes of CMOS. So CMOS as a circuit is a robust device hence use in designing of logic gates. Parameters that define the robustness of the CMOS are.  
+<img src="images/12_12.png" alt="Image 11.2">   
+Through transient analysis, we calculate the rise and fall delays of the CMOS by SPICE Simulation. As we know delays are calculated at 50% of the final values.   
+
+#### Lab steps to git clone vsdstdcelldesign  
+* First, clone the required mag files and spicemodels of inverter,pmos and nmos sky130. The command to clone files from github link is  
+```
+git clone https://github.com/nickson-jose/vsdstdcelldesign.git
+```   
+
+#### Switching Threshold Vm
+The Switching Threshold of a CMOS inverter is the point where the Vin = Vout on the DC Transfer characreristics.
+At this point, both the transistors are in saturation region, means both are turned on and have high chances of current flowing driectly from VDD to Ground called Leakage current.  
+
+### Inception of Layout and CMOS Fabrication Process  
+#### Mask CMOS Fabrication  
+The 16-mask CMOS fabrication process involves several critical steps to create integrated circuits. First, the appropriate semiconductor substrate is selected. Active regions for transistors are isolated by depositing SiO2 and Si3N4 layers, followed by photolithography and silicon nitride etching, a process known as LOCOS. Si3N4 is then removed with hot phosphoric acid. N-well and P-well regions are formed separately using photolithography and ion implantation with Boron for P-wells and Phosphorus for N-wells, followed by high-temperature diffusion to establish well depths. Gates, crucial for controlling transistor switching, are created using polysilicon layers and photolithography. Lightly Doped Drain (LDD) regions are formed to mitigate hot electron and short channel effects. Source and drain formation involves adding thin oxide layers and performing N+ and P+ implants. Local interconnects are formed by etching thin screen oxide, depositing titanium, and heat treatment to produce low-resistant titanium silicon dioxide and titanium nitride. Higher-level metal formation addresses non-planar surface topography using Chemical Mechanical Polishing (CMP) with doped silicon oxide, TiN, tungsten, and aluminum layers. Finally, a dielectric layer, typically Si3N4, is applied to protect the chip, resulting in advanced integrated circuits essential for modern electronics.    
+<img src="images/12_13.png" alt="Image 11.2">     
+
+#### SKY130 basic layer layout and LEF using inverter  
+From Layout, we see the layers which are required for CMOS inverter. Inverter is, PMOS and NMOS connected together.  
+
+##### Library exchange format (.lef)  
+* The layout of a design is defined in a specific file called LEF.
+* It includes design rules (tech LEF) and abstract information about the cells.  
+Tech LEF - Technology LEF file contains information about the Metal layer, Via Definition and DRCs.  
+Macro LEF - Contains physical information of the cell such as its Size, Pin, their direction.  
+
+#### Designing standard cell and SPICE extraction in MAGIC  
+
+### SKY130 Tech File Labs   
+
+#### Create Final SPICE Deck  
+
+
+
+
+## Day 4  
+### Timing Analysis and Clock Tree Synthesis  
+#### Standard Cell LEF generation  
+During Placement, only specific information from the mag file is necessary, such as the PR boundary, I/O ports, and the cell's power and ground rails. This essential data is defined in a LEF (Library Exchange Format) file. The primary goal is to extract the LEF file from the mag file and integrate it into the design flow. This helps streamline the placement process by focusing on the crucial elements needed for accurate and efficient design placement.  
+
+#### Grid into Track info  
+Track : A path or a line on which metal layers are drawn for routing. Track is used to define the height of the standard cell.
+
+To implement our own stdcell, few guidelines must be followed
+
+* I/O ports must lie on the intersection on Horizontal and vertical tracks
+* Width and Height of standard cell are odd mutliples of Horizontal track pitch and Vertical track pitch  
+This information is defined in tracks.info. 
+```
+li1 X 0.23 0.46 
+li1 Y 0.17 0.34
+```  
+
+#### Create Port Definition    
+To properly define pin properties and definitions in a cell, you need to create a LEF file, where a cell with ports is written as a macro cell, and the ports are declared as PINs of the macro.
+
+To define a port using the Magic console, follow these steps:
+
+1. Open Magic Layout Window: Start by sourcing the .mag file for your design (e.g., an inverter).
+
+2. Edit Text: Go to Edit >> Text to open the dialogue box.
+
+3. Label I/O Ports: Double press S on the I/O labels. The text will automatically take the string name and size.
+
+4. Enable Port: Make sure the Port enable checkbox is checked and the Default checkbox is unchecked.
+
+This process ensures that the pin properties and definitions are correctly set for the cell in the LEF file. In the given setup, the number in the textarea near the enable checkbox determines the order in which the ports are listed in the LEF file, with 0 being the first. For power and ground layers, their definitions may differ from the signal layer. In this instance, both ground and power connections are derived from the metal1 layer. This ensures that the connectivity for power and ground is properly established, distinct from the signal layer if necessary.  
+
+#### Set port class and port use attributes for layout   
+After defining ports, the next step is setting port class and port use attributes.  
+Select port A in magic:  
+```
+port class input
+port use signal
+```
+Select Y area:  
+```
+port class output
+port use signal
+```  
+Select VPWR area:  
+```
+port class inout
+port use power
+```  
+Select VGND area   
+```
+port class inout
+port use ground
+
+```    
+#### Custom cell naming and lef extraction  
+Name the custom cell through tkcon window as     
+We generate lef file by command:  
+```
+lef write
+
+```  
+#### Steps to include custom cell in ASIC design   
+#### Delay Tables  
+Delay is a crucial parameter in cell design, impacting all timing aspects. For different cell sizes and threshold voltages, delay model tables, or timing tables, are created. Delay depends on input transition and output load. For instance, a cell (X1) at the end of a long wire experiences different delay due to resistance and capacitance, compared to the same cell at the end of a short wire. VLSI engineers identified constraints for buffer insertion to maintain signal integrity, noting that buffer delays vary with load. They introduced "delay tables," 2D arrays of input slew and load capacitance values for different buffer sizes, used as timing models. Algorithms use these tables to compute delay values, interpolating when exact data isn't available, ensuring accurate delay estimation.   
+<img src="images/12_10.png" alt="Image 11.2">    
+#### Openlane steps with custom standard cell   
+Timing analysis is carried out outside the openLANE flow using OpenSTA tool. For this, pre_sta.conf is required to carry out the STA analysis. Invoke OpenSTA outside the openLANE flow as follows:  
+```
+sta pre_sta.conf  
+```  
+
+
+
+### Clock Tree Synthesis using Tritoncts  
+Clock Tree Synthesis (CTS) can be implemented using various techniques based on design requirements, constraints, and goals. **Balanced Tree CTS** distributes the clock signal in a balanced manner, similar to a binary tree, minimizing clock skew but potentially less power-efficient. **H-tree CTS** employs a hierarchical structure resembling an "H" to distribute clocks across large areas, reducing skew and optimizing power. **Star CTS** distributes the clock from a single central point to all flip-flops, simplifying distribution and minimizing skew but possibly requiring more buffers. **Global-Local CTS** combines star and tree topologies, using a global clock tree for major domains and local trees for specific domains, balancing global and local optimization. **Mesh CTS** arranges clock wires in a grid pattern, connecting flip-flops to the nearest clock wire, suitable for structured designs like memory arrays. **Adaptive CTS** dynamically adjusts the clock tree structure based on timing and congestion constraints, offering flexibility and adaptability but with increased complexity. Each method serves different needs, from minimizing skew to optimizing power consumption and meeting specific design goals.
+
+#### Cross talk in VLSI  
+Impact: Crosstalk is a significant concern in VLSI design due to the high integration density of components on a chip. Uncontrolled crosstalk can lead to data corruption, timing violations, and increased power consumption. Mitigation: VLSI designers employ various techniques to mitigate crosstalk, such as optimizing layout and routing, using appropriate shielding, implementing proper clock distribution strategies, and utilizing clock gating to reduce dynamic power consumption when logic is idle   
+
+#### Clock Net Shielding in VLSI:  
+The clock distribution network in VLSI circuits is essential for ensuring synchronous operation, as clock signals must reach all parts of the chip while minimizing skew and maintaining signal integrity. To achieve this, designers use **shielding techniques** to isolate the clock network from other signals, reducing interference. These techniques include dedicated clock routing layers, clock tree synthesis algorithms, and buffer insertion for effective clock distribution management. Additionally, VLSI designs often contain multiple clock domains. Proper **clock domain isolation** and clock gating help prevent clock signals from propagating between domains, thus avoiding metastability issues and maintaining synchronization.   
+
+#### Lab: 
+In this stage clock is propagated and make sure that clock reaches each and every clock pin from clock source with mininimum skew and insertion delay. Inorder to do this, we implement H-tree using mid point strategy. For balancing the skews, we use clock invteres or bufferes in the clock path. Before attempting to run CTS in TritonCTS tool, if the slack was attempted to be reduced in previous run, the netlist may have gotten modified by cell replacement techniques. Therefore, the verilog file needs to be modified using the write_verilog command. Then, the synthesis, floorplan and placement is run again. To run CTS use the below command: 
+```
+run_cts
+```    
+#### Test:  
+Type this in openlane  
+```
+echo $::env(CTS_CLK_BUFFER_LIST)
+set $::env(CTS_CLK_BUFFER_LIST) [lreplace $::env(CTS_CLK_BUFFER_LIST) 0 0]
+echo $::env(CTS_CLK_BUFFER_LIST)
+```    
+After changing the files, load the placement stage def file and run cts again. Now, again run OpenROAD and create another db and everything else is same. Report after post_cts is  
+
+
+
+## Day 5  
+### Maze Routing and Lee's algorithm     
+Routing involves creating a physical connection between two pins using algorithms designed to find the most efficient path. The Maze Routing algorithm, like the Lee algorithm, is a common method for solving routing problems. It uses a grid similar to the one used during cell customization. Starting with designated source and target points, it identifies the optimal route by incrementing labels on neighboring grid cells until it reaches the target. The algorithm favors L-shaped paths over zigzag routes but may use the latter if no better options are available. This method is useful for global routing but can be slow for large-scale tasks involving millions of pins. Other algorithms exist to address such challenges more efficiently.  
+<img src="images/12_7.png" alt="Image 11.2">   
+
+### Design Rule Check (DRC)  
+Design Rule Checking (DRC) is crucial for verifying that a design adheres to the process technology rules set by the foundry, ensuring the design meets manufacturing standards and avoids chip failures. It essentially defines the quality of the chip. Key design rules include the minimum width and spacing of wires, and the minimum pitch of the wire. To address signal short violations, metal layers can be repositioned to an upper metal layer, and via rules such as via width and spacing are also checked.  
+  
+
+ ### Power Distribution Network Generation  
+ Unlike the general ASIC flow, Power Distribution Network generation is not a part of floorplan run in OpenLANE. PDN must be generated after CTS and post-CTS STA analyses:  
+ we can check whether PDN has been created or no by check the current def environment variable:  
+ ```echo```  
+ ```$::env(CURRENT_DEF)```    
+   
+ ```
+ prep -design picorv32a -tag Run 12.07.10.11  
+gen_pdn
+```  
+  
+In Electronic Design Automation (EDA) tools, routing is divided into two stages due to its complexity: **Global Routing** and **Detailed Routing**. Global Routing subdivides the routing region into rectangular grid cells, creating a coarse 3D routing graph using the "FastRoute" engine. Detailed Routing, performed by the "TritonRoute" engine, refines this process with finer grid granularity and routing guides to implement the physical wiring. "FastRoute" initially generates routing guides, while "TritonRoute" uses this information to optimize the path for connecting pins, applying various strategies and refinements.  
+
+### Key Features of TritonRoute  
+TritonRoute initiates the detailed routing process, laying the foundation for subsequent routing steps and placing significant emphasis on following pre-processed route guides. This involves several actions to ensure efficiency and accuracy. Initially, TritonRoute analyzes the directions specified in the preferred route guides. If any non-directional routing guides are identified, it breaks them down into unit widths to facilitate easier routing. In cases where non-directional routing guides are encountered, TritonRoute splits them into unit widths for better management. Additionally, TritonRoute merges orthogonal guides, which are guides that touch the preferred ones, to streamline the routing process and create a more straightforward path. When it encounters guides running parallel to the preferred routing guides, TritonRoute employs an additional layer to bridge these parallel guides, ensuring efficient routing within the pre-processed guides. TritonRoute assumes that the route guide for each net satisfies inter-guide connectivity, either on the same metal layer with touching guides or on neighboring metal layers with a non-zero vertically overlapped area, allowing for via placement. Each unconnected terminal, such as a pin of a standard cell instance, must have its pin shape overlapped by a routing guide, depicted as a black dot (pin) within a purple box (metal1 layer). This comprehensive approach ensures that all components are correctly connected according to the routing guides, maintaining the integrity and efficiency of the circuit layout throughout the routing process.   
+<img src="images/12_8.png" alt="Image 11.2">  
+
+In summary, TritonRoute is a sophisticated tool that not only performs initial detail routing but also places a strong emphasis on optimizing routing within pre-processed route guides by breaking down, merging, and bridging them as needed to achieve efficient and effective routing results.  
+<img src="images/12_9.png" alt="Image 11.2">  
+Works on MILP(Mixed Integer linear programming) based panel routing scheme with Intra-layer parallel and Inter-layer sequential routing framework  
+
+### TritonRoute problem statement 
+```
+Inputs : LEF, DEF, Preprocessed route guides
+Output : Detailed routing solution with optimized wire length and via count
+Constraints : Route guide honoring, connectivity constraints and design rules.
+```  
+
+The space for the detailed routing is defined, and TritonRoute manages connectivity in two ways. **Access Points (AP)** are on-grid points on the metal route guide used to connect to lower-layer segments, pins, IO ports, or upper-layer segments. **Access Point Clusters (APC)** are unions of all Access Points derived from the same lower-layer segment, pin, IO port, or upper-layer guide, ensuring efficient connectivity across the layers. This approach streamlines the routing process by organizing connections into manageable clusters.  
+
+#### TritonRoute run for routing  
+Make sure the CURRENT_DEF is set to pdn.def  
+Start routing by using  
+```
+run_routing
+```  
+
+
+
+
+
 
 
 
