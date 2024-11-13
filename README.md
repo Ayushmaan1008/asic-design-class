@@ -1583,12 +1583,6 @@ OpenLane invokes the following
 * OpenSTA - This does the Static Timing Analysis on the netlist generated after synthesis and generated the timing reports  
 
 
-
-Flops ratio
-The flop ratio is defined as the ratio of the number of flops to the total number of cells
-Here flop ratio is 1596/10104 = 0.1579 (i.e: 15.8%) [From the synthesis statistics]
-
-
 <img src="images/12_17.png" alt="Image 11.2">  
 
 #### Key Concepts  
@@ -1634,7 +1628,14 @@ FP_IO_MODE - defines pin configurations around the core(1 = randomly equidistant
 FP_CORE_VMETAL - vertical metal layer where I/O pins are placed   
 FP_CORE_HMETAL - horizontal metal layer where I/O pins are placed   
 
-Note: Usually, the parameter values for vertical metal layer and horizontal metal layer will be 1 more than that specified in the files  
+Note: Usually, the parameter values for vertical metal layer and horizontal metal layer will be 1 more than that specified in the files    
+
+<img src="images/12_19.png" alt="Image 11.2">   
+
+Zoomed in 
+<img src="images/12_20.png" alt="Image 11.2">
+
+
 
 ### Library Binding and Placement   
 
