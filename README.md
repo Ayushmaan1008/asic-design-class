@@ -14,7 +14,8 @@
 9. [RTL Design using Verilog and SKY130 Technology](#Lab9)
 10. [Synthesizing RISC-V using Yosys and post synthesis  BabySoc Simulation](#Lab10)    
 11. [STA for Synthesized Risc-V Core with OpenSTA ](#Lab11) 
-12. [PVT Corner Analysis using OpenSTA](#Lab12)
+12. [PVT Corner Analysis using OpenSTA](#Lab12)  
+13. [Physical Design using Openlane](#Lab13)
 
 <a name="Lab1"></a>
 # Lab 1 - Compiling the C code in GCC. Here we'll compile a code to calculate sum of numbers from 1 to 10
@@ -1491,6 +1492,7 @@ report_wns -digits {4} >> ./output/sta_output/sta_wns.txt
 ## Graph of Worst negative slack  measured  
 <img src="images/WNS.png" alt="Image 11.2">    
 
+<a name="Lab13"></a>
 # Lab 13 - Physical Design using Openlane  
 
 ## Day 1
@@ -1558,7 +1560,6 @@ Set the package required by OpenLane
 ```
 package require openlane 0.9
 ```  
-<img src="images/12_15.jpeg" alt="Image 11.2">
 
 #### Synthesis  
 Run the synthesis  
@@ -1582,8 +1583,7 @@ OpenLane invokes the following
 
 * OpenSTA - This does the Static Timing Analysis on the netlist generated after synthesis and generated the timing reports  
 
-
-<img src="images/12_17.png" alt="Image 11.2">  
+  
 
 #### Key Concepts  
 Flops ratio    
