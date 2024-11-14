@@ -1587,7 +1587,7 @@ OpenLane invokes the following
 
 #### Key Concepts  
 Flops ratio    
-<img src="images/12_18.png" alt="Image 11.2">
+<img src="images/12_32.png" alt="Image 11.2">
 * The flop ratio is defined as the ratio of the number of flops to the total number of cells  
 * Here flop ratio is 1613/14876 = 0.108 (i.e: 10.8%) [From the synthesis statistics]        
 
@@ -1629,15 +1629,58 @@ FP_CORE_VMETAL - vertical metal layer where I/O pins are placed
 FP_CORE_HMETAL - horizontal metal layer where I/O pins are placed   
 
 Note: Usually, the parameter values for vertical metal layer and horizontal metal layer will be 1 more than that specified in the files    
+  
+  Importance files in increasing priority order:
 
-<img src="images/12_19.png" alt="Image 11.2">   
+floorplan.tcl - System default settings
+config.tcl
+sky130A_sky130_fd_sc_hd_config.tcl
+To run the picorv32a floorplan in openLANE:  
+```
+run_floorplan  
+
+```   
+Post the floorplan run, a .def file will have been created within the results/floorplan directory. We may review floorplan files by checking the floorplan.tcl. The system defaults will have been overriden by switches set in conifg.tcl and further overriden by switches set in sky130A_sky130_fd_sc_hd_config.tcl.
+
+To view the floorplan, Magic is invoked after moving to the results/floorplan directory:  
+```
+magic -T /home/vsduser/Desktop/work/tools/openlane_working_dir/pdks/sky130A/libs.tech/magic/sky130A.tech lef read ../../tmp/merged.lef def read picorv32a.floorplan.def
+
+```    
+
+<img src="images/12_33.png" alt="Image 11.2">   
 
 Zoomed in 
-<img src="images/12_20.png" alt="Image 11.2">
+<img src="images/12_34.png" alt="Image 11.2">  
+
+Floorplaning DEF  
+<img src="images/12_35.png" alt="Image 11.2">       
+
+According to floorplan def 1000 Unit Distance = 1 micron Die width in unit distance
+
+= 660685 − 0
+
+= 660685 Die height in unit distance = 671405 − 0
+
+= 671405 Distance in microns
+
+= Value in unit distance / 1000 Die width in microns
+
+= 660685/1000 = 660.685 microns Die height in microns
+
+= 671405/1000 = 671.405 microns Are os die in microns
+
+= 660.685 ∗ 671.405 = 443587.212425 square microns
+
+Power Planing DEF    
+<img src="images/12_36.png" alt="Image 11.2">  
 
 
 
-### Library Binding and Placement   
+
+### Library Binding and Placement    
+
+<img src="images/12_39.png" alt="Image 11.2">  
 
 #### Netlist Binding and initial place design   
 First we need to bind the netlist with physical cells. We have shapes for OR, AND and every cell for pratice purpose. But in reality we dont have such shapes, we have give an physical dimensions like rectangles or squares weight and width. This information is given in libs and lefs. Now we place these cells in our design by initilaising it.   
@@ -1649,7 +1692,8 @@ Global Placement: Cells will be placed randomly in optimal positions which may n
 
 Optimization is stage where we estimate the lenght and capictance, based on that we add buffers. Ideally, Optimization is done for better timing.    
 
-#### Congestion aware Placement  
+#### Congestion aware Placement    
+Congestion-aware placement refers to the process of positioning cells on the chip layout while considering potential routing congestion. The goal is to place cells in such a way that the interconnects (wires) connecting them can be routed efficiently, without excessive overlap or interference that could lead to design rule violations, signal delays, or even physical errors.
 
 #### Need for libraries and characterization  
 As we know, From logic synthesis to routing and STA, each and evry stage has one thing in common i.e., logic gates/ logic cells. In order for the tool understand these gates are and their timing, we need to characterize these cells.   
@@ -1660,6 +1704,32 @@ Library is a place where we get information about every cell. It has differents 
 1. Inputs : PDKS(process design kit) : DRC & LVS, SPICE Models, library & user-defined specs.  
 2. Design Steps :Circuit design, Layout design (Art of layout Euler's path and stick diagram), Extraction of parasitics, Characterization (timing, noise, power).  
 3. Outputs: CDL (circuit description language), LEF, GDSII, extracted SPICE netlist (.cir), timing, noise and power .lib files  
+  
+ #### Timing aware placement
+
+Timing-aware placement focuses on ensuring that the cells are placed in a way that optimizes the chip’s timing performance. The objective is to minimize the delay along critical signal paths (often referred to as critical paths) to meet the required timing constraints (setup and hold times).
+Command  
+```
+# Congestion aware placement by default
+run_placement
+```  
+Opening the DEF file  
+```
+# path containing generated placement def
+cd Desktop/work/tools/openlane_working_dir/openlane/designs/picorv32a/runs/<your_path>/results/placement/
+
+# Command to load the placement def in magic tool
+magic -T /home/vsduser/Desktop/work/tools/openlane_working_dir/pdks/sky130A/libs.tech/magic/sky130A.tech lef read ../../tmp/merged.lef def read picorv32a.placement.def &
+```
+
+<img src="images/12_37.png" alt="Image 11.2">    
+Legalized placement of standard cells
+
+we can see the power rails for standard cells as well as the legalized placed standard cells
+
+
+<img src="images/12_38.png" alt="Image 11.2"> 
+
 
 #### Standard Cell Characterization Flow  
 In the industry, a standard cell characterization flow typically involves several key steps:
@@ -1710,16 +1780,41 @@ Low transition time = time(slew_high_fall_thr) - time (slew_low_fall_thr)
 
 
 
-## Day 3
-## Design Library Cell using ngspice simulations  
-### CMOS inverter ngspice simulations  
-``ngspice`` is opesoure engine where simulations are done.   
-#### IO Placer revision  
-* PnR is a iterative flow and hence, we can make changes to the environment variables in the fly to observe the changes in our design.
-* Let us say If I want to change my pin configuration along the core from equvi distance randomly placed to someother placement, we just set that IO mode variable on command prompt as shown below  
+## Day 3  
+### Introduction to VSD Inverter and Layout Visualization using Magic Tool    
 ```
-set ::env(FP_IO_MODE) 2
+git clone https://github.com/nickson-jose/vsdstdcelldesign.git
+cd vsdstdcelldesign
+cp /home/vsduser/Desktop/work/tools/openlane_working_dir/pdks/sky130A/libs.tech/magic/sky130A.tech .
+magic -T sky130A.tech sky130_ayushmaan_inv.mag &
 ```  
+Below screenshot shows the layout of the inverter,    
+<img src="images/12_40.png" alt="Image 11.2"> 
+
+
+Follow the below commands in the magic tool tkcon window to extract the custom inverter layout into spice netlist,   
+```
+pwd
+extract all
+ext2spice cthresh 0 rthresh 0
+ext2spice
+```   
+Below screenshot shows the extracted spice parameters, SPICE3 file created from sky130_ayushmaan_inv.ext - technology: sky130A
+```
+.option scale=10m
+ 
+.subckt sky130_ayushmaan_inv A Y VPWR VGND
+X0 Y A VGND VGND sky130_fd_pr__nfet_01v8 ad=1.72n pd=0.166m as=1.64n ps=0.162m w=42 l=23
+X1 Y A VPWR VPWR sky130_fd_pr__pfet_01v8 ad=1.64n pd=0.162m as=1.72n ps=0.166m w=42 l=23
+C0 VPWR Y 0.117f
+C1 A Y 0.0749f
+C2 A VPWR 0.0779f
+C3 Y VGND 0.277f
+C4 A VGND 0.434f
+C5 VPWR VGND 0.774f
+.ends
+```  
+
 #### SPICE Deck Creation and Simulation for CMOS inverter    
 A SPICE deck encompasses crucial information such as the model description, netlist description, component connectivity, component values, capacitance load, nodes, simulation type and parameters, and included libraries. Before running a SPICE simulation, it's necessary to create this deck, which provides specific details. These include component connectivity, such as the connections for Vdd, Vss, Vin, and the substrate, which tunes the MOS threshold voltage; component values, including those for PMOS and NMOS, output load, input gate voltage, and supply voltage; node identification; simulation commands; and the model file, which contains parameters for NMOS and PMOS specific to the technology used. This detailed setup ensures accurate and reliable simulation results.   
 <img src="images/12_11.png" alt="Image 11.2">   
@@ -1740,171 +1835,803 @@ At this point, both the transistors are in saturation region, means both are tur
 ### Inception of Layout and CMOS Fabrication Process  
 #### Mask CMOS Fabrication  
 The 16-mask CMOS fabrication process involves several critical steps to create integrated circuits. First, the appropriate semiconductor substrate is selected. Active regions for transistors are isolated by depositing SiO2 and Si3N4 layers, followed by photolithography and silicon nitride etching, a process known as LOCOS. Si3N4 is then removed with hot phosphoric acid. N-well and P-well regions are formed separately using photolithography and ion implantation with Boron for P-wells and Phosphorus for N-wells, followed by high-temperature diffusion to establish well depths. Gates, crucial for controlling transistor switching, are created using polysilicon layers and photolithography. Lightly Doped Drain (LDD) regions are formed to mitigate hot electron and short channel effects. Source and drain formation involves adding thin oxide layers and performing N+ and P+ implants. Local interconnects are formed by etching thin screen oxide, depositing titanium, and heat treatment to produce low-resistant titanium silicon dioxide and titanium nitride. Higher-level metal formation addresses non-planar surface topography using Chemical Mechanical Polishing (CMP) with doped silicon oxide, TiN, tungsten, and aluminum layers. Finally, a dielectric layer, typically Si3N4, is applied to protect the chip, resulting in advanced integrated circuits essential for modern electronics.    
-<img src="images/12_13.png" alt="Image 11.2">     
+<img src="images/12_13.png" alt="Image 11.2">       
 
-#### SKY130 basic layer layout and LEF using inverter  
-From Layout, we see the layers which are required for CMOS inverter. Inverter is, PMOS and NMOS connected together.  
+### Complete SPICE Deck for Inverter    
+Here we go into the created spice file and make changes to it and simulate.
+In the spicefile the nmos and pmos model details were defined along with the sub circuit details and the other parasitic capacitance information also.
 
-##### Library exchange format (.lef)  
-* The layout of a design is defined in a specific file called LEF.
-* It includes design rules (tech LEF) and abstract information about the cells.  
-Tech LEF - Technology LEF file contains information about the Metal layer, Via Definition and DRCs.  
-Macro LEF - Contains physical information of the cell such as its Size, Pin, their direction.  
+We are going to be doing a transient analysis so we make the following changes to it.
 
-#### Designing standard cell and SPICE extraction in MAGIC  
+* VGND to VSS 0V  
+* Supply voltage VPWR to GND.  
+* Sweeping a pulse input.  
+* We add library files and change the scale to 0.01u   
+* Add a transient analysis with nessasary stoptime and precision as shown below.    
+<img src="images/12_41.png" alt="Image 11.2">   
 
-### SKY130 Tech File Labs   
 
-#### Create Final SPICE Deck  
+
+
+Following is the command to execute the Spice deck using the Ngspice software   
+```
+ngspice spice_files/sky130_ayushmaan_inv.spice
+```   
+Following commmand is to see the waveform for the transient analysis,  
+```
+ngpsice spice_files/sky130_ayushmaan_inv.spice  
+```    
+<img src="images/12_42.png" alt="Image 11.2">   
+
+Following commmand is to see the waveform for the transient analysis,  
+```
+ngpsice spice_files/sky130_ayushmaan_inv.spice
+```    
+<img src="images/12_43.png" alt="Image 11.2">
+   
+
+Inverter Standard Cell Characterization
+There are four timing parameters used to characterize the inverter standard cell:
+
+1. Rise transition - Time taken for the output to rise from 20% to 80% of max value  
+2. Fall Transition: Time taken for the output to fall from 80% to 20% of max value  
+3. Cell Rise delay: difference in time (50% output rise) to time(50% input fall)  
+4. Cell Fall delay: difference in time (50% output fall) to time (50% input rise)      
+
+
+### LAB exercise and DRC Challenges  
+
+#### Introduction of Magic and Skywater DRC's
+Here the following are done:
+
+In-depth overview of Magic DRC engine  
+Introduction to Google/Skywater DRC rules  
+Lab to warm up : Fixing a simple rule error   
+Lab of main excersise : Fixing or creating a complex error   
+To know anything about magic use the following link:  
+```
+http://opencircuitdesign.com/magic/
+```
+Majorly check out magic tutorails and magic command summary in the Using magic tab.
+Also do check out the technlogy file manual in the technology files tab.   
+
+#### Sky130s pdk intro and Steps to download labs  
+To view the documentation of Skywater pdks use the link below:  
+```
+https://skywater-pdk.readthedocs.io/en/main/  
+```  
+We can view the rules associated with it there.  
+
+We are downloading the packaged files to our local pc using the wget command. It stands for Web get . The following command is used.  
+```
+wget http://opencircuitdesign.com/open_pdks/archive/drc_tests.tgz  
+```  
+After this, extract it using the below command.  
+```
+ tar xfz drc_tests.tgz  
+ ```  
+ Once it is done. A drc_test folder is created in the directory which extraction is done.
+cd to that folder and run Magic.For better graphic use, the command below is used:  
+```
+magic -d XR  
+```   
+To load a mag file we can load it using File > Open > .mag from the magic window.    
+<img src="images/12_23.png" alt="Image 11.2">   
+
+Or we can use the terminal comand:  
+```
+magic -d XR <filename>.mag  
+```
+Select a particular block to check the DRC check. using drc why .
+We will use the following command in the tkcon window to see metal cut down.  
+```
+cif see VIA2  
+```    
+<img src="images/12_24.png" alt="Image 11.2">  
+
+Load Sky130 tech rules for drc challenges
+First load the poly file by load poly.mag on tkcon window.
+
+Finding the error by mouse cursor and find the box area, Poly.9 is violated due to spacing between polyres and poly.    
+
+<img src="images/12_25.png" alt="Image 11.2">   
+
+We find that distance between regular polysilicon & poly resistor should be 22um but it is showing 17um and still no errors . We should go to sky130A.tech file and modify as follows to detect this error.  
+
+In line  
+```
+spacing npres *nsd 480 touching_illegal \
+	"poly.resistor spacing to N-tap < %d (poly.9)"
+```  
+change to  
+```
+spacing npres allpolynonres 480 touching_illegal \
+	"poly.resistor spacing to N-tap < %d (poly.9)"
+```  
+Also,  
+```
+spacing xhrpoly,uhrpoly,xpc alldiff 480 touching_illegal \
+
+	"xhrpoly/uhrpoly resistor spacing to diffusion < %d (poly.9)"
+```   
+change to  
+```
+spacing xhrpoly,uhrpoly,xpc allpolynonres 480 touching_illegal \
+
+	"xhrpoly/uhrpoly resistor spacing to diffusion < %d (poly.9)"
+
+```     
+<img src="images/12_26.png" alt="Image 11.2">
 
 
 
 
 ## Day 4  
-### Timing Analysis and Clock Tree Synthesis  
-#### Standard Cell LEF generation  
-During Placement, only specific information from the mag file is necessary, such as the PR boundary, I/O ports, and the cell's power and ground rails. This essential data is defined in a LEF (Library Exchange Format) file. The primary goal is to extract the LEF file from the mag file and integrate it into the design flow. This helps streamline the placement process by focusing on the crucial elements needed for accurate and efficient design placement.  
+### Pre-layout timing analysis and importance of good clock tree   
+#### Grid into track info      
+Track is a path on which metal layers are drawn for routing.It is used to define the height of the standard cell.
 
-#### Grid into Track info  
-Track : A path or a line on which metal layers are drawn for routing. Track is used to define the height of the standard cell.
+Guidelines to be followed while making a standard cell:
 
-To implement our own stdcell, few guidelines must be followed
-
-* I/O ports must lie on the intersection on Horizontal and vertical tracks
-* Width and Height of standard cell are odd mutliples of Horizontal track pitch and Vertical track pitch  
-This information is defined in tracks.info. 
+Input and output ports must lie on the intersection on Horizontal annd vertical tracks.
+Width of standard cell must be in the odd multiple of track pitch & Height in the odd multiple of track height pitch.
+The information to get the grids is defined in tracks.info. cd to the particular location and open the file.      
 ```
-li1 X 0.23 0.46 
-li1 Y 0.17 0.34
+cd Desktop/work/tools/openlane_working_dir/pdks/open_pdks/sky130/openlane/sky130_fd_sc_hd/tracks.info
+```   
+
+The content of the file are:   
+```
+li1 X 0.23 0.46  //0.46um is the width  
+li1 Y 0.17 0.34  //0.34um is the height 
+met1 X 0.17 0.34
+met1 Y 0.17 0.34
+met2 X 0.23 0.46
+met2 Y 0.23 0.46
+met3 X 0.34 0.68
+met3 Y 0.34 0.68
+met4 X 0.46 0.92
+met4 Y 0.46 0.92
+met5 X 1.70 3.40
+met5 Y 1.70 3.40  
 ```  
+<img src="images/12_27.png" alt="Image 11.2">    
+We input the below command in the tkcon window to get grid on magic.    
 
-#### Create Port Definition    
-To properly define pin properties and definitions in a cell, you need to create a LEF file, where a cell with ports is written as a macro cell, and the ports are declared as PINs of the macro.
-
-To define a port using the Magic console, follow these steps:
-
-1. Open Magic Layout Window: Start by sourcing the .mag file for your design (e.g., an inverter).
-
-2. Edit Text: Go to Edit >> Text to open the dialogue box.
-
-3. Label I/O Ports: Double press S on the I/O labels. The text will automatically take the string name and size.
-
-4. Enable Port: Make sure the Port enable checkbox is checked and the Default checkbox is unchecked.
-
-This process ensures that the pin properties and definitions are correctly set for the cell in the LEF file. In the given setup, the number in the textarea near the enable checkbox determines the order in which the ports are listed in the LEF file, with 0 being the first. For power and ground layers, their definitions may differ from the signal layer. In this instance, both ground and power connections are derived from the metal1 layer. This ensures that the connectivity for power and ground is properly established, distinct from the signal layer if necessary.  
-
-#### Set port class and port use attributes for layout   
-After defining ports, the next step is setting port class and port use attributes.  
-Select port A in magic:  
 ```
-port class input
-port use signal
-```
-Select Y area:  
-```
-port class output
-port use signal
-```  
-Select VPWR area:  
-```
-port class inout
-port use power
-```  
-Select VGND area   
-```
-port class inout
-port use ground
-
+grid 0.46um 0.34um 0.23um 0.17um  
 ```    
-#### Custom cell naming and lef extraction  
-Name the custom cell through tkcon window as     
-We generate lef file by command:  
-```
-lef write
+<img src="images/12_44.png" alt="Image 11.2">   
+ 
+ ####  Conversion of magic layout to standard cell LEF file   
+Extraction of the LEF file for the cell comes next when the layout is completed. To help the placer and router tool, specific characteristics and definitions must be defined for the cell's pins. Ports are the macro's declared PINs, and in LEF files, a cell containing ports is written as a macro cell. Our goal is to extract LEF in a predetermined format from a configuration (in this case, a straightforward CMOS inverter). The first step is to define each port and assign the appropriate class and use characteristics to each port.  
+Below are steps to define a port :  
+First, open the.mag file for the design in the Magic Layout window. Next, select Edit >> Text to bring up a dialogue window. Use locali for port y & a, use metal 1 for vdd & gnd as shown in figures below.   
+<img src="images/12_28.png" alt="Image 11.2">    
+<img src="images/12_29.png" alt="Image 11.2">     
+<img src="images/12_30.png" alt="Image 11.2"> 
+<img src="images/12_31.png" alt="Image 11.2">       
+Define the purpose of ports as follows in tkcon window:    
 
+```
+port A class input
+port A use signal
+
+port Y class output
+port Y use signal
+
+port VPWR class inout
+port VPWR use power
+
+port VGND class inout
+port VPWR use ground
 ```  
-#### Steps to include custom cell in ASIC design   
-#### Delay Tables  
-Delay is a crucial parameter in cell design, impacting all timing aspects. For different cell sizes and threshold voltages, delay model tables, or timing tables, are created. Delay depends on input transition and output load. For instance, a cell (X1) at the end of a long wire experiences different delay due to resistance and capacitance, compared to the same cell at the end of a short wire. VLSI engineers identified constraints for buffer insertion to maintain signal integrity, noting that buffer delays vary with load. They introduced "delay tables," 2D arrays of input slew and load capacitance values for different buffer sizes, used as timing models. Algorithms use these tables to compute delay values, interpolating when exact data isn't available, ensuring accurate delay estimation.   
-<img src="images/12_10.png" alt="Image 11.2">    
-#### Openlane steps with custom standard cell   
-Timing analysis is carried out outside the openLANE flow using OpenSTA tool. For this, pre_sta.conf is required to carry out the STA analysis. Invoke OpenSTA outside the openLANE flow as follows:  
+Generate lef file using following command   
 ```
-sta pre_sta.conf  
+lef write <name>  
+```    
+This generates sky130_ayushmaan_inv.lef file.  
+
+#### Steps to include custom cell in ASIC design  
+We have created a custom standard cell in previous steps of an inverter. Copy lef file, sky130_fd_sc_hd_typical.lib, sky130_fd_sc_hd_slow.lib & sky130_fd_sc_hd_fast.lib to src folder of picorv32a from libs folder vsdstdcelldesign.
+
+Then modify the condif.tcl as follows.  
+```
+
+# Design
+set ::env(DESIGN_NAME) "picorv32a"
+
+set ::env(VERILOG_FILES) "$::env(DESIGN_DIR)/src/picorv32a.v"
+
+set ::env(CLOCK_PORT) "clk"
+set ::env(CLOCK_NET) $::env(CLOCK_PORT)
+
+set ::env(GLB_RESIZER_TIMING_OPTIMIZATIONS) {1}
+
+set ::env(LIB_SYNTH) "$::env(OPENLANE_ROOT)/designs/picorv32a/src/sky130_fd_sc_hd__typical.lib"
+set ::env(LIB_SLOWEST) "$::env(OPENLANE_ROOT)/designs/picorv32a/src/sky130_fd_sc_hd__slow.lib"
+set ::env(LIB_FASTEST) "$::env(OPENLANE_ROOT)/designs/picorv32a/src/sky130_fd_sc_hd__fast.lib"
+set ::env(LIB_TYPICAL) "$::env(OPENLANE_ROOT)/designs/picorv32a/src/sky130_fd_sc_hd__typical.lib"
+
+set ::env(EXTRA_LEFS) [glob $::env(OPENLANE_ROOT)/designs/$::env(DESIGN_NAME)/src/*.lef]
+
+set filename $::env(DESIGN_DIR)/$::env(PDK)_$::env(STD_CELL_LIBRARY)_config.tcl
+if { [file exists $filename] == 1} {
+	source $filename
+}
+```   
+
+To integrate standard cell in openlane flow, perform following commands:  
+```
+set lefs [glob $::env(DESIGN_DIR)/src/*.lef]
+add_lefs -src $lefs
 ```  
 
-
-
-### Clock Tree Synthesis using Tritoncts  
-Clock Tree Synthesis (CTS) can be implemented using various techniques based on design requirements, constraints, and goals. **Balanced Tree CTS** distributes the clock signal in a balanced manner, similar to a binary tree, minimizing clock skew but potentially less power-efficient. **H-tree CTS** employs a hierarchical structure resembling an "H" to distribute clocks across large areas, reducing skew and optimizing power. **Star CTS** distributes the clock from a single central point to all flip-flops, simplifying distribution and minimizing skew but possibly requiring more buffers. **Global-Local CTS** combines star and tree topologies, using a global clock tree for major domains and local trees for specific domains, balancing global and local optimization. **Mesh CTS** arranges clock wires in a grid pattern, connecting flip-flops to the nearest clock wire, suitable for structured designs like memory arrays. **Adaptive CTS** dynamically adjusts the clock tree structure based on timing and congestion constraints, offering flexibility and adaptability but with increased complexity. Each method serves different needs, from minimizing skew to optimizing power consumption and meeting specific design goals.
-
-#### Cross talk in VLSI  
-Impact: Crosstalk is a significant concern in VLSI design due to the high integration density of components on a chip. Uncontrolled crosstalk can lead to data corruption, timing violations, and increased power consumption. Mitigation: VLSI designers employ various techniques to mitigate crosstalk, such as optimizing layout and routing, using appropriate shielding, implementing proper clock distribution strategies, and utilizing clock gating to reduce dynamic power consumption when logic is idle   
-
-#### Clock Net Shielding in VLSI:  
-The clock distribution network in VLSI circuits is essential for ensuring synchronous operation, as clock signals must reach all parts of the chip while minimizing skew and maintaining signal integrity. To achieve this, designers use **shielding techniques** to isolate the clock network from other signals, reducing interference. These techniques include dedicated clock routing layers, clock tree synthesis algorithms, and buffer insertion for effective clock distribution management. Additionally, VLSI designs often contain multiple clock domains. Proper **clock domain isolation** and clock gating help prevent clock signals from propagating between domains, thus avoiding metastability issues and maintaining synchronization.   
-
-#### Lab: 
-In this stage clock is propagated and make sure that clock reaches each and every clock pin from clock source with mininimum skew and insertion delay. Inorder to do this, we implement H-tree using mid point strategy. For balancing the skews, we use clock invteres or bufferes in the clock path. Before attempting to run CTS in TritonCTS tool, if the slack was attempted to be reduced in previous run, the netlist may have gotten modified by cell replacement techniques. Therefore, the verilog file needs to be modified using the write_verilog command. Then, the synthesis, floorplan and placement is run again. To run CTS use the below command: 
+Run openlane flow synthesis with newly inserted custom inverter cell   
 ```
+docker
+# Now that we have entered the OpenLANE flow contained docker sub-system we can invoke the OpenLANE flow in the Interactive mode using the following command
+./flow.tcl -interactive
+
+# Now that OpenLANE flow is open we have to input the required packages for proper functionality of the OpenLANE flow
+package require openlane 0.9
+
+# Now the OpenLANE flow is ready to run any design and initially we have to prep the design creating some necessary files and directories for running a specific design which in our case is 'picorv32a'
+prep -design picorv32a
+
+# Adiitional commands to include newly added lef to openlane flow
+set lefs [glob $::env(DESIGN_DIR)/src/*.lef]
+add_lefs -src $lefs
+
+# Now that the design is prepped and ready, we can run synthesis using following command
+run_synthesis
+```    
+
+<img src="images/12_45.png" alt="Image 11.2">  
+<img src="images/12_46.png" alt="Image 11.2">
+
+#### Remove/reduce the newly introduced violations with the introduction of custom inverter cell by modifying design parameters  
+Commands to view and change parameters to improve timing and run synthesis    
+```
+# Now once again we have to prep design so as to update variables
+prep -design picorv32a -tag 14-11_19-09 -overwrite  
+
+# Addiitional commands to include newly added lef to openlane flow merged.lef
+set lefs [glob $::env(DESIGN_DIR)/src/*.lef]
+add_lefs -src $lefs
+
+# Command to display current value of variable SYNTH_STRATEGY
+echo $::env(SYNTH_STRATEGY)
+
+# Command to set new value for SYNTH_STRATEGY
+set ::env(SYNTH_STRATEGY) "DELAY 3"
+
+# Command to display current value of variable SYNTH_BUFFERING to check whether it's enabled
+echo $::env(SYNTH_BUFFERING)
+
+# Command to display current value of variable SYNTH_SIZING
+echo $::env(SYNTH_SIZING)
+
+# Command to set new value for SYNTH_SIZING
+set ::env(SYNTH_SIZING) 1
+
+# Command to display current value of variable SYNTH_DRIVING_CELL to check whether it's the proper cell or not
+echo $::env(SYNTH_DRIVING_CELL)
+
+# Now that the design is prepped and ready, we can run synthesis using following command
+run_synthesis
+```       
+<img src="images/12_47.png" alt="Image 11.2">  
+
+
+#### Run floorplan and placement and verify the cell is accepted in PnR flow     
+Now that our custom inverter is properly accepted in synthesis we can now run floorplan using following command  
+```
+run_floorplan  
+```   
+<img src="images/12_48.png" alt="Image 11.2">  
+Facing errors above, so need to run floorplan commands individually    
+
+```
+# Follwing commands are alltogather sourced in "run_floorplan" command
+init_floorplan
+place_io
+tap_decap_or 
+```    
+<img src="images/12_49.png" alt="Image 11.2">
+
+Post floorplan, we need to execute the below command for placement  
+```
+run_placement  
+```    
+
+<img src="images/12_50.png" alt="Image 11.2">
+Commands to load placement def in magic in another terminal       
+
+```
+# Change directory to path containing generated placement def  
+cd Desktop/work/tools/openlane_working_dir/openlane/designs/picorv32a/runs/14-11_19-09/results/placement/
+
+# Command to load the placement def in magic tool
+magic -T /home/vsduser/Desktop/work/tools/openlane_working_dir/pdks/sky130A/libs.tech/magic/sky130A.tech lef read ../../tmp/merged.lef def read picorv32a.placement.def &
+```   
+<img src="images/12_51.png" alt="Image 11.2">  
+<img src="images/12_52.png" alt="Image 11.2">  
+
+Command for tkcon window to view internal layers of cells
+```
+expand  
+```    
+
+<img src="images/12_53.png" alt="Image 11.2">  
+
+
+### Post-Synthesis timing analysis with OpenSTA tool  
+Since we are having 0 wns after improved timing run we are going to do timing analysis on initial run of synthesis which has lots of violations and no parameters were added to improve timing
+
+Commands to invoke the OpenLANE flow include new lef and perform synthesis  
+```
+cd Desktop/work/tools/openlane_working_dir/openlane
+docker
+
+./flow.tcl -interactive
+
+package require openlane 0.9
+
+prep -design picorv32a
+
+set lefs [glob $::env(DESIGN_DIR)/src/*.lef]
+add_lefs -src $lefs
+
+set ::env(SYNTH_SIZING) 1
+
+run_synthesis
+```        
+<img src="images/12_54.png" alt="Image 11.2"> 
+
+Let's create .conf file for STA analysis,   
+```
+set_cmd_units -time ns -capacitance pF -current mA -voltage V -resistance kOhm -distance um
+ 
+read_liberty -max /home/vsduser/Desktop/work/tools/openlane_working_dir/openlane/designs/picorv32a/src/sky130_fd_sc_hd__slow.lib
+ 
+read_liberty -min /home/vsduser/Desktop/work/tools/openlane_working_dir/openlane/designs/picorv32a/src/sky130_fd_sc_hd__fast.lib
+ 
+read_verilog /home/vsduser/Desktop/work/tools/openlane_working_dir/openlane/designs/picorv32a/runs/14-11_19-25/results/synthesis/picorv32a.synthesis.v
+ 
+link_design picorv32a
+ 
+read_sdc /home/vsduser/Desktop/work/tools/openlane_working_dir/openlane/designs/picorv32a/src/my_base.sdc
+ 
+report_checks -path_delay min_max -fields {slew trans net cap input_pin}
+report_tns
+report_wns
+```   
+
+
+
+my_base.sdc     
+<img src="images/12_57.png" alt="Image 11.2">  
+
+
+Commands to run STA in another terminal  
+```
+cd Desktop/work/tools/openlane_working_dir/openlane
+sta pre_sta.conf
+```       
+<img src="images/12_55.png" alt="Image 11.2">   
+<img src="images/12_56.png" alt="Image 11.2">    
+
+
+
+Since more fanout is causing more delay we can add parameter to reduce fanout and do synthesis again
+
+Commands to include new lef and perform synthesis  
+```
+# Now the OpenLANE flow is ready to run any design and initially we have to prep the design creating some necessary files and directories for running a specific design which in our case is 'picorv32a'
+prep -design picorv32a -tag 14-11_19-09 -overwrite
+
+# Adiitional commands to include newly added lef to openlane flow
+set lefs [glob $::env(DESIGN_DIR)/src/*.lef]
+add_lefs -src $lefs
+
+# Command to set new value for SYNTH_SIZING
+set ::env(SYNTH_SIZING) 1
+
+# Command to set new value for SYNTH_MAX_FANOUT
+set ::env(SYNTH_MAX_FANOUT) 4
+
+# Command to display current value of variable SYNTH_DRIVING_CELL to check whether it's the proper cell or not
+echo $::env(SYNTH_DRIVING_CELL)
+
+# Now that the design is prepped and ready, we can run synthesis using following command
+run_synthesis
+```    
+<img src="images/12_58.png" alt="Image 11.2">  
+
+
+Commands to run STA in another terminal 
+```
+# Change directory to openlane
+cd Desktop/work/tools/openlane_working_dir/openlane
+
+# Command to invoke OpenSTA tool with script
+sta pre_sta.conf
+```     
+<img src="images/12_59.png" alt="Image 11.2"> 
+<img src="images/12_60.png" alt="Image 11.2"> 
+
+#### Make timing ECO fixes to remove all violations  
+```
+# Reports all the connections to a net
+report_net -connections _13751_
+
+# Checking command syntax
+help replace_cell
+
+# Replacing cell
+replace_cell _17924_ sky130_fd_sc_hd__or3_4
+
+# Generating custom timing report
+report_checks -fields {net cap slew input_pins} -digits 4
+```    
+We can see that the slack has reduced    
+<img src="images/12_61.png" alt="Image 11.2">     
+
+
+We need to similarly replace other cells to reduce the slack.
+
+Since we want to follow up on the earlier 0 violation design we are continuing with the clean design to further stages
+
+Commands load the design and run necessary stages  
+
+```
+# Now once again we have to prep design so as to update variables
+prep -design picorv32a -tag 14-11_19-09 -overwrite
+
+# Addiitional commands to include newly added lef to openlane flow merged.lef
+set lefs [glob $::env(DESIGN_DIR)/src/*.lef]
+add_lefs -src $lefs
+
+# Command to set new value for SYNTH_STRATEGY
+set ::env(SYNTH_STRATEGY) "DELAY 3"
+
+# Command to set new value for SYNTH_SIZING
+set ::env(SYNTH_SIZING) 1
+
+# Now that the design is prepped and ready, we can run synthesis using following command
+run_synthesis
+
+# Follwing commands are alltogather sourced in "run_floorplan" command
+init_floorplan
+place_io
+tap_decap_or
+
+# Now we are ready to run placement
+run_placement
+
+# Incase getting error
+unset ::env(LIB_CTS)
+
+# With placement done we are now ready to run CTS
 run_cts
-```    
-#### Test:  
-Type this in openlane  
+```      
+<img src="images/12_62.png" alt="Image 11.2">  
+<img src="images/12_63.png" alt="Image 11.2">  
+<img src="images/12_64.png" alt="Image 11.2">     
+
+
+### Post-CTS OpenROAD timing analysis     
+Commands to be run in OpenLANE flow to do OpenROAD timing analysis with integrated OpenSTA in OpenROAD
 ```
+
+# Command to run OpenROAD tool
+openroad
+
+# Reading lef file
+read_lef /openLANE_flow/designs/picorv32a/runs/14-11_19-09/tmp/merged.lef
+
+# Reading def file
+read_def /openLANE_flow/designs/picorv32a/runs/14-11_19-09/results/cts/picorv32a.cts.def
+
+# Creating an OpenROAD database to work with
+write_db pico_cts.db
+
+# Loading the created database in OpenROAD
+read_db pico_cts.db
+
+# Read netlist post CTS
+read_verilog /openLANE_flow/designs/picorv32a/runs/14-11_19-09/results/synthesis/picorv32a.synthesis_cts.v
+
+# Read library for design
+read_liberty $::env(LIB_SYNTH_COMPLETE)
+
+# Link design and library
+link_design picorv32a
+
+# Read in the custom sdc we created
+read_sdc /openLANE_flow/designs/picorv32a/src/my_base.sdc
+
+# Setting all cloks as propagated clocks
+set_propagated_clock [all_clocks]
+
+# Check syntax of 'report_checks' command
+help report_checks
+
+# Generating custom timing report
+report_checks -path_delay min_max -fields {slew trans net cap input_pins} -format full_clock_expanded -digits 4
+
+# Exit to OpenLANE flow
+exit
+```       
+<img src="images/12_65.png" alt="Image 11.2">
+<img src="images/12_66.png" alt="Image 11.2">
+<img src="images/12_67.png" alt="Image 11.2">
+
+
+#### Explore post-CTS OpenROAD timing analysis by removing 'sky130_fd_sc_hd__clkbuf_1' cell from clock buffer list variable 'CTS_CLK_BUFFER_LIST'  
+
+Commands to be run in OpenLANE flow to do OpenROAD timing analysis after changing CTS_CLK_BUFFER_LIST  
+```
+# Checking current value of 'CTS_CLK_BUFFER_LIST'
 echo $::env(CTS_CLK_BUFFER_LIST)
-set $::env(CTS_CLK_BUFFER_LIST) [lreplace $::env(CTS_CLK_BUFFER_LIST) 0 0]
+
+# Removing 'sky130_fd_sc_hd__clkbuf_1' from the list
+set ::env(CTS_CLK_BUFFER_LIST) [lreplace $::env(CTS_CLK_BUFFER_LIST) 0 0]
+
+# Checking current value of 'CTS_CLK_BUFFER_LIST'
 echo $::env(CTS_CLK_BUFFER_LIST)
-```    
-After changing the files, load the placement stage def file and run cts again. Now, again run OpenROAD and create another db and everything else is same. Report after post_cts is  
+
+# Checking current value of 'CURRENT_DEF'
+echo $::env(CURRENT_DEF)
+
+# Setting def as placement def
+set ::env(CURRENT_DEF) /openLANE_flow/designs/picorv32a/runs/24-03_10-03/results/placement/picorv32a.placement.def
+
+# Run CTS again
+run_cts
+
+# Checking current value of 'CTS_CLK_BUFFER_LIST'
+echo $::env(CTS_CLK_BUFFER_LIST)
+
+# Command to run OpenROAD tool
+openroad
+
+# Reading lef file
+read_lef /openLANE_flow/designs/picorv32a/runs/14-11_19-09/tmp/merged.lef
+
+# Reading def file
+read_def /openLANE_flow/designs/picorv32a/runs/14-11_19-09/results/cts/picorv32a.cts.def
+
+# Creating an OpenROAD database to work with
+write_db pico_cts1.db
+
+# Loading the created database in OpenROAD
+read_db pico_cts.db
+
+# Read netlist post CTS
+read_verilog /openLANE_flow/designs/picorv32a/runs/14-11_19-09/results/synthesis/picorv32a.synthesis_cts.v
+
+# Read library for design
+read_liberty $::env(LIB_SYNTH_COMPLETE)
+
+# Link design and library
+link_design picorv32a
+
+# Read in the custom sdc we created
+read_sdc /openLANE_flow/designs/picorv32a/src/my_base.sdc
+
+# Setting all cloks as propagated clocks
+set_propagated_clock [all_clocks]
+
+# Generating custom timing report
+report_checks -path_delay min_max -fields {slew trans net cap input_pins} -format full_clock_expanded -digits 4
+
+# Report hold skew
+report_clock_skew -hold
+
+# Report setup skew
+report_clock_skew -setup
+
+# Exit to OpenLANE flow
+exit
+
+# Checking current value of 'CTS_CLK_BUFFER_LIST'
+echo $::env(CTS_CLK_BUFFER_LIST)
+
+# Inserting 'sky130_fd_sc_hd__clkbuf_1' to first index of list
+set ::env(CTS_CLK_BUFFER_LIST) [linsert $::env(CTS_CLK_BUFFER_LIST) 0 sky130_fd_sc_hd__clkbuf_1]
+
+# Checking current value of 'CTS_CLK_BUFFER_LIST'
+echo $::env(CTS_CLK_BUFFER_LIST)  
+```
+  <img src="images/12_68.png" alt="Image 11.2">
+  <img src="images/12_69.png" alt="Image 11.2">
+  <img src="images/12_70.png" alt="Image 11.2">
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 ## Day 5  
-### Maze Routing and Lee's algorithm     
-Routing involves creating a physical connection between two pins using algorithms designed to find the most efficient path. The Maze Routing algorithm, like the Lee algorithm, is a common method for solving routing problems. It uses a grid similar to the one used during cell customization. Starting with designated source and target points, it identifies the optimal route by incrementing labels on neighboring grid cells until it reaches the target. The algorithm favors L-shaped paths over zigzag routes but may use the latter if no better options are available. This method is useful for global routing but can be slow for large-scale tasks involving millions of pins. Other algorithms exist to address such challenges more efficiently.  
-<img src="images/12_7.png" alt="Image 11.2">   
+### Final steps for RTL2GDS using tritonRoute and openSTA     
+#### Perform generation of Power Distribution Network (PDN) and explore the PDN layout   
+```   
+cd Desktop/work/tools/openlane_working_dir/openlane
+docker
 
-### Design Rule Check (DRC)  
-Design Rule Checking (DRC) is crucial for verifying that a design adheres to the process technology rules set by the foundry, ensuring the design meets manufacturing standards and avoids chip failures. It essentially defines the quality of the chip. Key design rules include the minimum width and spacing of wires, and the minimum pitch of the wire. To address signal short violations, metal layers can be repositioned to an upper metal layer, and via rules such as via width and spacing are also checked.  
-  
+# Now that we have entered the OpenLANE flow contained docker sub-system we can invoke the OpenLANE flow in the Interactive mode using the following command
+./flow.tcl -interactive
 
- ### Power Distribution Network Generation  
- Unlike the general ASIC flow, Power Distribution Network generation is not a part of floorplan run in OpenLANE. PDN must be generated after CTS and post-CTS STA analyses:  
- we can check whether PDN has been created or no by check the current def environment variable:  
- ```echo```  
- ```$::env(CURRENT_DEF)```    
-   
- ```
- prep -design picorv32a -tag Run 12.07.10.11  
+# Now that OpenLANE flow is open we have to input the required packages for proper functionality of the OpenLANE flow
+package require openlane 0.9
+
+# Now the OpenLANE flow is ready to run any design and initially we have to prep the design creating some necessary files and directories for running a specific design which in our case is 'picorv32a'
+prep -design picorv32a
+
+# Addiitional commands to include newly added lef to openlane flow merged.lef
+set lefs [glob $::env(DESIGN_DIR)/src/*.lef]
+add_lefs -src $lefs
+
+# Command to set new value for SYNTH_STRATEGY
+set ::env(SYNTH_STRATEGY) "DELAY 3"
+
+# Command to set new value for SYNTH_SIZING
+set ::env(SYNTH_SIZING) 1
+
+# Now that the design is prepped and ready, we can run synthesis using following command
+run_synthesis
+
+# Following commands are alltogather sourced in "run_floorplan" command
+init_floorplan
+place_io
+tap_decap_or
+
+# Now we are ready to run placement
+run_placement
+
+# Incase getting error
+unset ::env(LIB_CTS)
+
+# With placement done we are now ready to run CTS
+run_cts
+
+# Now that CTS is done we can do power distribution network
 gen_pdn
-```  
-  
-In Electronic Design Automation (EDA) tools, routing is divided into two stages due to its complexity: **Global Routing** and **Detailed Routing**. Global Routing subdivides the routing region into rectangular grid cells, creating a coarse 3D routing graph using the "FastRoute" engine. Detailed Routing, performed by the "TritonRoute" engine, refines this process with finer grid granularity and routing guides to implement the physical wiring. "FastRoute" initially generates routing guides, while "TritonRoute" uses this information to optimize the path for connecting pins, applying various strategies and refinements.  
+````       
+<img src="images/12_71.png" alt="Image 11.2">
 
-### Key Features of TritonRoute  
-TritonRoute initiates the detailed routing process, laying the foundation for subsequent routing steps and placing significant emphasis on following pre-processed route guides. This involves several actions to ensure efficiency and accuracy. Initially, TritonRoute analyzes the directions specified in the preferred route guides. If any non-directional routing guides are identified, it breaks them down into unit widths to facilitate easier routing. In cases where non-directional routing guides are encountered, TritonRoute splits them into unit widths for better management. Additionally, TritonRoute merges orthogonal guides, which are guides that touch the preferred ones, to streamline the routing process and create a more straightforward path. When it encounters guides running parallel to the preferred routing guides, TritonRoute employs an additional layer to bridge these parallel guides, ensuring efficient routing within the pre-processed guides. TritonRoute assumes that the route guide for each net satisfies inter-guide connectivity, either on the same metal layer with touching guides or on neighboring metal layers with a non-zero vertically overlapped area, allowing for via placement. Each unconnected terminal, such as a pin of a standard cell instance, must have its pin shape overlapped by a routing guide, depicted as a black dot (pin) within a purple box (metal1 layer). This comprehensive approach ensures that all components are correctly connected according to the routing guides, maintaining the integrity and efficiency of the circuit layout throughout the routing process.   
-<img src="images/12_8.png" alt="Image 11.2">  
-
-In summary, TritonRoute is a sophisticated tool that not only performs initial detail routing but also places a strong emphasis on optimizing routing within pre-processed route guides by breaking down, merging, and bridging them as needed to achieve efficient and effective routing results.  
-<img src="images/12_9.png" alt="Image 11.2">  
-Works on MILP(Mixed Integer linear programming) based panel routing scheme with Intra-layer parallel and Inter-layer sequential routing framework  
-
-### TritonRoute problem statement 
+Commands to load PDN def in magic in another terminal  
 ```
-Inputs : LEF, DEF, Preprocessed route guides
-Output : Detailed routing solution with optimized wire length and via count
-Constraints : Route guide honoring, connectivity constraints and design rules.
-```  
+# Change directory to path containing generated PDN def
+cd Desktop/work/tools/openlane_working_dir/openlane/designs/picorv32a/runs/14-11_19-09/tmp/floorplan/
 
-The space for the detailed routing is defined, and TritonRoute manages connectivity in two ways. **Access Points (AP)** are on-grid points on the metal route guide used to connect to lower-layer segments, pins, IO ports, or upper-layer segments. **Access Point Clusters (APC)** are unions of all Access Points derived from the same lower-layer segment, pin, IO port, or upper-layer guide, ensuring efficient connectivity across the layers. This approach streamlines the routing process by organizing connections into manageable clusters.  
+# Command to load the PDN def in magic tool
+magic -T /home/vsduser/Desktop/work/tools/openlane_working_dir/pdks/sky130A/libs.tech/magic/sky130A.tech lef read ../../tmp/merged.lef def read 17-pdn.def &
+```    
+<img src="images/12_72.png" alt="Image 11.2">  
+<img src="images/12_73.png" alt="Image 11.2">   
 
-#### TritonRoute run for routing  
-Make sure the CURRENT_DEF is set to pdn.def  
-Start routing by using  
+#### Perfrom detailed routing using TritonRoute and explore the routed layout   
+
+Commands to perform routing  
 ```
+# Check value of 'CURRENT_DEF'
+echo $::env(CURRENT_DEF)
+
+# Check value of 'ROUTING_STRATEGY'
+echo $::env(ROUTING_STRATEGY)
+
+# Command for detailed route using TritonRoute
 run_routing
+```     
+<img src="images/12_74.png" alt="Image 11.2"> 
+<img src="images/12_75.png" alt="Image 11.2"> 
+<img src="images/12_76.png" alt="Image 11.2">       
+
+
+Commands to load routed def in magic in another terminal   
+```
+# Change directory to path containing routed def
+cd Desktop/work/tools/openlane_working_dir/openlane/designs/picorv32a/runs/14-11_19-09/results/routing/
+
+# Command to load the routed def in magic tool
+magic -T /home/vsduser/Desktop/work/tools/openlane_working_dir/pdks/sky130A/libs.tech/magic/sky130A.tech lef read ../../tmp/merged.lef def read picorv32a.def &
+```
+
+
+####  Post-Route parasitic extraction using SPEF extractor  
+Commands for SPEF extraction using external tool  
+```
+# Change directory
+cd Desktop/work/tools/openlane_working_dir/openlane/scripts/spef_extractor/
+
+# Command extract spef
+python3 main.py --lef_file /home/vsduser/Desktop/work/tools/openlane_working_dir/openlane/designs/picorv32a/runs/14-11_19-09/tmp/merged.lef --def_file /home/vsduser/Desktop/work/tools/openlane_working_dir/openlane/designs/picorv32a/runs/14-11_19-09/results/routing/picorv32a.def
+```          
+
+<img src="images/12_77.png" alt="Image 11.2">
+<img src="images/12_78.png" alt="Image 11.2">  
+<img src="images/12_79.png" alt="Image 11.2">   
+
+#### Post-Route parasitic extraction using SPEF extractor  
+Commands for SPEF extraction using external tool  
+```
+# Change directory
+cd Desktop/work/tools/openlane_working_dir/openlane/scripts/spef_extractor/
+
+# Command extract spef
+python3 main.py --lef_file /home/vsduser/Desktop/work/tools/openlane_working_dir/openlane/designs/picorv32a/runs/14-11_19-09/tmp/merged.lef --def_file /home/vsduser/Desktop/work/tools/openlane_working_dir/openlane/designs/picorv32a/runs/14-11_19-09/results/routing/picorv32a.def
+```        
+<img src="images/12_80.png" alt="Image 11.2">   
+
+####  Post-Route OpenSTA timing analysis with the extracted parasitics of the route   
+
 ```  
+# Command to run OpenROAD tool
+openroad
+
+# Reading lef file
+read_lef /openLANE_flow/designs/picorv32a/runs/14-11_19-09/tmp/merged.lef
+
+# Reading def file
+read_def /openLANE_flow/designs/picorv32a/runs/14-11_19-09/results/routing/picorv32a.def
+
+# Creating an OpenROAD database to work with
+write_db pico_route.db
+
+# Loading the created database in OpenROAD
+read_db pico_route.db
+
+# Read netlist post CTS
+read_verilog /openLANE_flow/designs/picorv32a/runs/14-11_19-09/results/synthesis/picorv32a.synthesis_preroute.v
+
+# Read library for design
+read_liberty $::env(LIB_SYNTH_COMPLETE)
+
+# Link design and library
+link_design picorv32a
+
+# Read in the custom sdc we created
+read_sdc /openLANE_flow/designs/picorv32a/src/my_base.sdc
+
+# Setting all cloks as propagated clocks
+set_propagated_clock [all_clocks]
+
+# Read SPEF
+read_spef /openLANE_flow/designs/picorv32a/runs/14-11_19-09/results/routing/picorv32a.spef
+
+# Generating custom timing report
+report_checks -path_delay min_max -fields {slew trans net cap input_pins} -format full_clock_expanded -digits 4
+
+# Exit to OpenLANE flow
+exit
+```       
+<img src="images/12_81.png" alt="Image 11.2">
+<img src="images/12_82.png" alt="Image 11.2">
+<img src="images/12_83.png" alt="Image 11.2">  
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
