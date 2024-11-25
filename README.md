@@ -15,7 +15,8 @@
 10. [Synthesizing RISC-V using Yosys and post synthesis  BabySoc Simulation](#Lab10)    
 11. [STA for Synthesized Risc-V Core with OpenSTA ](#Lab11) 
 12. [PVT Corner Analysis using OpenSTA](#Lab12)  
-13. [Physical Design using Openlane](#Lab13)
+13. [Physical Design using Openlane](#Lab13)  
+14. [RTL to GDSII flow for the RVMYTH RISC-V core and VSDBabySoC](#Lab14)
 
 <a name="Lab1"></a>
 # Lab 1 - Compiling the C code in GCC. Here we'll compile a code to calculate sum of numbers from 1 to 10
