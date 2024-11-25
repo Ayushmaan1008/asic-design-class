@@ -1,0 +1,15 @@
+violation type: Metal Spacing
+	srcs: net:_04268_
+	bbox = (160.1500, 284.1550) - (160.1750, 284.2800) on Layer met1
+violation type: Metal Spacing
+	srcs: net:_04268_
+	bbox = (160.1750, 284.0000) - (160.2650, 284.1550) on Layer met1
+violation type: Metal Spacing
+	srcs: net:_04740_
+	bbox = (235.9950, 276.1300) - (236.0500, 276.3650) on Layer met1
+violation type: Metal Spacing
+	srcs: net:_04740_
+	bbox = (235.9950, 276.1500) - (236.0500, 276.3650) on Layer met1
+violation type: Short
+	srcs: net:CPU_Xreg_value_a4\[15\]\[25\] net:VSS
+	bbox = (303.3000, 288.0800) - (303.4400, 288.5600) on Layer met1

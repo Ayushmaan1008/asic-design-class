@@ -1,0 +1,3 @@
+violation type: Short
+	srcs: net:CPU_Xreg_value_a4\[15\]\[25\] net:VSS
+	bbox = (304.9100, 288.0800) - (305.0500, 288.5600) on Layer met1
